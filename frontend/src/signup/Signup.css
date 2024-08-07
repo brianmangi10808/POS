@@ -1,0 +1,80 @@
+
+/* Apply background image to the body */
+.body {
+    background-image: url('../assets/back-wifi.jpg');
+    background-size: cover; /* Scale the image to cover the entire element */
+    background-repeat: no-repeat; /* Prevent the image from repeating */
+    background-position: center; /* Center the image in the element */
+  }
+  
+.login-page{
+height:100vh;
+align-items: center;
+justify-content: center;
+width: 100%;
+display: flex;
+}
+
+.login-form input{
+    width: 100%;
+   
+    padding: 7px;
+    margin: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.login-form button {
+    margin-bottom: 20px;
+    margin-top: 20px;
+    padding: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 4px;
+
+}
+.login-form button:hover{
+    background-color: #399918;
+    color: #ddd;
+}
+.login-form label {
+    font-weight: 600;
+    font-size: 18px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+.login-form p{
+    font-size: 18px;
+    font-weight: 500;
+}
+.login-form{
+    width: 35%;
+   border-radius: 7px;
+    color: aliceblue;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #131842;
+}
+.login-button{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.nav-link{
+    color: #ddd;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.login-button span{
+    color: yellow;
+}
+@media (max-width: 800px) {
+   .login-form{
+    width: 80%;
+   }
+   .login-form input{
+    width: 90%;
+   }
+}
