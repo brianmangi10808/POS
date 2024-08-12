@@ -1,4 +1,7 @@
-body {
+ 
+ 
+ 
+ body {
     margin: 0;
     font-family: Arial, sans-serif;
   }
@@ -11,7 +14,7 @@ body {
   .sidebar {
     width: 150px;
     background-color: #333;
-    /* color: white; */
+     color: white; 
     
     padding: 15px;
     box-sizing: border-box;
@@ -97,24 +100,57 @@ body {
     justify-content: space-between;
   }
   .outer-left-container{
+    display: flex;
+    background-color: rgb(240, 248, 255);
+    flex-direction: column;
     width: 70%;
-    background-color: antiquewhite;
-    height: 97vh;
+   justify-content: space-evenly;
+    height: 99vh;
   }
   .outer-right-container{
     width: 27%;
     margin-top: 0%;
     background-color: aqua;
-    height: 97vh;
+    height: 99vh;
   }
   .line-container{
     height: 90vh;
     opacity: .2;
     width: 2px;
     background-color: black;
-   
-
-  }
+    }
+    .graph-container{
+      background-color:#ffff;
+      height: 34vh;
+      width: 100%;
+      border-radius: 5px;
+      border: 1px solid #000;
+    }
+    .sales-parchase{
+      background-color: #ffff;
+      height: 29vh;
+      width: 100%;
+      border-radius: 5px;
+      border: 1px solid #000;
+    }
+    .top-customer-product{
+      border-radius: 5px;
+      background-color:#ffff;
+      height: 32vh;
+      width: 100%;
+      border: 1px solid #000;
+    }
+    .content{
+      .homedisplay{
+        background-color: #1d2634;
+      
+       height: 100vh;
+       
+      
+        color: white;
+      }
+      
+    }
   @media (max-width: 768px) {
     .sidebar {
       position: absolute;
@@ -159,4 +195,4 @@ body {
       padding: 5px;
     }
   }
-  
+   
