@@ -11,6 +11,7 @@ import {
 
 const Sidebar = ({ openSidebarToggle, OpenSidebar }) => {
   return (
+    <div className="sidebar-container">
     <aside id="sidebar" className={openSidebarToggle ? "sidebar-responsive" : ""}>
       <div className='sidebar-title'>
         <div className='sidebar-brand'>
@@ -34,6 +35,7 @@ const Sidebar = ({ openSidebarToggle, OpenSidebar }) => {
         </ul>
       </div>
     </aside>
+    </div>
   );
 };
 

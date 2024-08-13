@@ -1,6 +1,11 @@
 // src/CategoryManager.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './Category.css'
+import { DeleteIcon,EditIcon } from '@chakra-ui/icons'
+
+
+
 
 // URL of your API
 const API_URL = 'http://localhost:3000/api/categories';
@@ -58,12 +63,13 @@ const Category= () => {
 
     return (
         <div>
-            <h1>Category Manager</h1>
-            <form onSubmit={handleCreateOrUpdate}>
-                <div>
+          
+            <form onSubmit={handleCreateOrUpdate} className='category-form'>
+                <div className='category-input'>
                     <label>Category Name</label>
                     <input
                         type="text"
+                        placeholder='Type category name ..'
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
@@ -74,21 +80,26 @@ const Category= () => {
                     {editingCategoryId ? 'Update Category' : 'Create Category'}
                 </button>
             </form>
-
-            <h2>Categories</h2>
+           <div className="Category-list">
+            {/* <h2>Categories</h2> */}
             {categories.length === 0 ? (
                 <p>No categories found</p>
             ) : (
                 <ul>
                     {categories.map((category) => (
                         <li key={category.id}>
-                            {category.id}  {category.name}
-                            <button onClick={() => handleEdit(category)}>Edit</button>
-                            <button onClick={() => handleDelete(category.id)}>Delete</button>
+                            <div className=""> {category.id}  {category.name}</div>
+                          
+                            <div className="category-button">
+                            <button onClick={() => handleEdit(category)}><EditIcon boxSize={15} /></button>
+                            <button onClick={() => handleDelete(category.id)}><DeleteIcon boxSize={15}/></button>
+                       </div>
+                       
                         </li>
                     ))}
                 </ul>
             )}
+          </div>
         </div>
     );
 };

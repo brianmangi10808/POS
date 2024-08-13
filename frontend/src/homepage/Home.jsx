@@ -1,7 +1,10 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { UserContext } from '../signup/UserContext';
 import axios from 'axios';
+import profile from '../assets/profile.jpg';
 import './Home.css';
+
+import { NavLink, Outlet } from 'react-router-dom';
 
 const Home = () => {
   const { username } = useContext(UserContext);
@@ -54,8 +57,8 @@ const Home = () => {
         </div>
       </div>
       <div className="body-home">
-        <div className="sidebar">
-          <h2>Categories</h2>
+        <div className="sidebar-home">
+          <h2>Categoris</h2>
           <ul>
             {categories.map((category) => (
               <li
@@ -69,29 +72,41 @@ const Home = () => {
           </ul>
         </div>
         <div className="product-list">
-          <h2>Products</h2>
+         
           {error && <p className="error">{error}</p>}
           {activeCategory === null ? (
             <p>Please select a category</p>
           ) : (
-            <ul>
+            <div className='product-grid'>
               {products.length === 0 ? (
                 <p>No products available in this category.</p>
               ) : (
                 products.map((product) => (
-                  <li key={product.id}>
+                  <div className='product-details' key={product.id}>
+                    <div className="image-container">
+                    <img src={profile} alt="map" />
+                    </div>
+                    <div className="lower-details">
                     <h3>{product.name}</h3>
-                    <p>{product.description}</p>
-                    <p>Price: {product.price}</p>
-                    <p>Quantity: {product.quantity}</p>
-                  </li>
+                   
+                    <p>KSH <span>{product.price}</span></p>
+                    
+                    <div className="btn-container">
+                    <button className='checkout-product-btn'>ADD</button>
+                   </div>
+                    </div>
+                  </div>
                 ))
               )}
-            </ul>
+            </div>
           )}
         </div>
         <div className="checkout-form">
           <h2>Checkout</h2>
+          <li className='discord'>
+                            <NavLink to='/home/checkout' className="sidebar-names">Checkout</NavLink>
+                        </li>
+          <Outlet/>
         </div>
       </div>
     </div>

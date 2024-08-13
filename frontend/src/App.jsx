@@ -10,6 +10,7 @@ import Users from './adminpage/Users';
 import Sales from './adminpage/Sales';
 import Dashboard from './adminpage/Dashboard';
 import Product from './adminpage/Product';
+import Checkout from './homepage/Checkout';
 
 function App() {
   return (
@@ -17,7 +18,9 @@ function App() {
       <Routes>
         <Route path='/' element={<Login />} />
         <Route path='/register' element={<Register />} />
-        <Route path='/home' element={<Home />} />
+        <Route path='/home' element={<Home />} >
+          <Route path='checkout' element={<Checkout />} />
+        </Route>
         <Route path='/admin' element={<Admin />}>
           <Route path='dashboard' element={<Dashboard />} />
           <Route path='category' element={<Category />} />
