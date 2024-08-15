@@ -198,10 +198,8 @@ const Home = () => {
             <h3 className="total-price">Total: KSH {calculateTotal()}</h3>
             <button className="complete-purchase-btn">Complete Purchase</button>
           </div>
-          <li className="discord">
-            <NavLink to='/home/checkout' className="sidebar-names">Checkout</NavLink>
-          </li>
-          <Outlet />
+        
+         
         </div>
       </div>
     </div>
