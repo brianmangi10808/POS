@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useContext } from 'react';
 import './admin.css';
 import axios from 'axios';
@@ -80,4 +81,3 @@ const Admin = () => {
     );
 }
 
-export default Admin;
