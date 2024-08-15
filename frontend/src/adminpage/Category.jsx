@@ -1,16 +1,13 @@
 // src/CategoryManager.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './Category.css'
-import { DeleteIcon,EditIcon } from '@chakra-ui/icons'
-
-
-
+import './Category.css';
+import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 
 // URL of your API
 const API_URL = 'http://localhost:3000/api/categories';
 
-const Category= () => {
+const Category = () => {
     const [categories, setCategories] = useState([]);
     const [name, setName] = useState('');
     const [editingCategoryId, setEditingCategoryId] = useState(null);
@@ -34,10 +31,12 @@ const Category= () => {
         setError('');
 
         try {
+            const upperCaseName = name.toUpperCase(); // Convert name to uppercase
+
             if (editingCategoryId) {
-                await axios.put(`${API_URL}/${editingCategoryId}`, { name });
+                await axios.put(`${API_URL}/${editingCategoryId}`, { name: upperCaseName });
             } else {
-                await axios.post(API_URL, { name });
+                await axios.post(API_URL, { name: upperCaseName });
             }
             fetchCategories();
             setName('');
@@ -63,7 +62,6 @@ const Category= () => {
 
     return (
         <div>
-          
             <form onSubmit={handleCreateOrUpdate} className='category-form'>
                 <div className='category-input'>
                     <label>Category Name</label>
@@ -80,26 +78,23 @@ const Category= () => {
                     {editingCategoryId ? 'Update Category' : 'Create Category'}
                 </button>
             </form>
-           <div className="Category-list">
-            {/* <h2>Categories</h2> */}
-            {categories.length === 0 ? (
-                <p>No categories found</p>
-            ) : (
-                <ul>
-                    {categories.map((category) => (
-                        <li key={category.id}>
-                            <div className=""> {category.id}  {category.name}</div>
-                          
-                            <div className="category-button">
-                            <button onClick={() => handleEdit(category)}><EditIcon boxSize={15} /></button>
-                            <button onClick={() => handleDelete(category.id)}><DeleteIcon boxSize={15}/></button>
-                       </div>
-                       
-                        </li>
-                    ))}
-                </ul>
-            )}
-          </div>
+            <div className="Category-list">
+                {categories.length === 0 ? (
+                    <p>No categories found</p>
+                ) : (
+                    <ul>
+                        {categories.map((category) => (
+                            <li key={category.id}>
+                                <div> {category.id}  {category.name}</div>
+                                <div className="category-button">
+                                    <button onClick={() => handleEdit(category)}><EditIcon boxSize={15} /></button>
+                                    <button onClick={() => handleDelete(category.id)}><DeleteIcon boxSize={15}/></button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
         </div>
     );
 };

@@ -61,11 +61,11 @@ const Admin = () => {
                             <NavLink to='/customer' className="sidebar-names">CUSTOMER</NavLink>
                         </li>
                         <li className='discord'>
-                            <NavLink to='/stock' className="sidebar-names">STOCK</NavLink>
+                            <NavLink to='/admin/inventory' className="sidebar-names">STOCK</NavLink>
                         </li>
                        
                         <li className='discord'>
-                            <NavLink to='/branch' className="sidebar-names">BRANCH</NavLink>
+                            <NavLink to='/admin/branchform' className="sidebar-names">BRANCH</NavLink>
                         </li>
                     </ul>
                 </nav>

@@ -1,6 +1,9 @@
 // src/ProductManager.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import "./Product.css"
+import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
+
 
 // URL of your API
 const API_URL = 'http://localhost:3000/api/products';
@@ -111,11 +114,13 @@ const Product = () => {
         }
     };
 
+    
+
     return (
         <div>
             <h1>Product Management</h1>
-            <form onSubmit={handleCreateOrUpdate}>
-                <div>
+            <form className='form-product' onSubmit={handleCreateOrUpdate}>
+                <div className='label-name'>
                     <label>Product Name</label>
                     <input
                         type="text"
@@ -125,7 +130,7 @@ const Product = () => {
                         required
                     />
                 </div>
-                <div>
+                <div className='label-name'>
                     <label>Description</label>
                     <input
                         type="text"
@@ -134,7 +139,7 @@ const Product = () => {
                         onChange={handleInputChange}
                     />
                 </div>
-                <div>
+                <div className='label-name'>
                     <label>Price</label>
                     <input
                         type="number"
@@ -144,7 +149,7 @@ const Product = () => {
                         required
                     />
                 </div>
-                <div>
+                <div className='label-name'>
                     <label>Quantity</label>
                     <input
                         type="number"
@@ -154,7 +159,7 @@ const Product = () => {
                         required
                     />
                 </div>
-                <div>
+                <div className='label-name'>
                     <label>Category</label>
                     <select
                         name="category_id"
@@ -170,7 +175,7 @@ const Product = () => {
                         ))}
                     </select>
                 </div>
-                <div>
+                <div className='label-name'>
                     <label>Image</label>
                     <input
                         type="file"
@@ -179,22 +184,35 @@ const Product = () => {
                     />
                 </div>
                 {error && <p>{error}</p>}
-                <button type="submit">
+                <button className='btn-products' type="submit">
                     {editingProductId ? 'Update Product' : 'Create Product'}
                 </button>
             </form>
-
+            
             <h2>Products</h2>
+            <div className="category-product-align">
+                <h3>Category</h3>
+            </div>
             {products.length === 0 ? (
                 <p>No products found</p>
             ) : (
                 <ul>
                     {products.map((prod, index) => (
-                        <li key={prod.id}>
-                            {index + 1}. {prod.name} (ID: {prod.id}, Category: {prod.category_name})
-                            <button onClick={() => handleEdit(prod)}>Edit</button>
-                            <button onClick={() => handleDelete(prod.id)}>Delete</button>
-                        </li>
+                        <div className='product-items' key={prod.id}>
+                            <div className=" prod-name">
+                            {index + 1}. {prod.name} 
+                            </div>
+                           
+                                
+                                <div  className='categ-name'>{prod.category_name}</div>
+                             
+                                
+                                <div className="product-button">
+                                <button  onClick={() => handleEdit(prod)}><EditIcon boxSize={17} /></button>
+                                <button  onClick={() => handleDelete(prod.id)}><DeleteIcon boxSize={17}/></button>
+                                </div>
+                            
+                        </div>
                     ))}
                 </ul>
             )}

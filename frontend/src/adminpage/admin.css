@@ -8,17 +8,17 @@
   
   .container {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
   }
   
   .sidebar {
     width: 150px;
     background-color: #333;
      color: white; 
-    
+     min-height: 100vh;
     padding: 15px;
     box-sizing: border-box;
-    position: relative;
+   
     transform: translateX(0);
     transition: transform 0.3s ease-in-out;
   }
@@ -28,7 +28,7 @@
     list-style-type: none;
     padding: 10px;
     margin: 0;
-    height: 70vh;
+    height: 100%;
    
     display: flex;
     justify-content: space-evenly;

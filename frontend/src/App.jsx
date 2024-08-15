@@ -11,6 +11,8 @@ import Sales from './adminpage/Sales';
 import Dashboard from './adminpage/Dashboard';
 import Product from './adminpage/Product';
 import Checkout from './homepage/Checkout';
+import BranchForm from './adminpage/BranchForm';
+import Inventory from './adminpage/Inventory';
 
 function App() {
   return (
@@ -20,11 +22,14 @@ function App() {
         <Route path='/register' element={<Register />} />
         <Route path='/home' element={<Home />} >
           <Route path='checkout' element={<Checkout />} />
+          <Route index element={<Checkout />} />
         </Route>
         <Route path='/admin' element={<Admin />}>
           <Route path='dashboard' element={<Dashboard />} />
           <Route path='category' element={<Category />} />
           <Route path='users' element={<Users />} />
+          <Route path='inventory' element={<Inventory/>} />
+          <Route path='branchform' element={<BranchForm />} />
           <Route path='sales' element={<Sales />} />
           <Route path='product' element={<Product />} />
           <Route index element={<Dashboard />} /> {/* Default route */}
