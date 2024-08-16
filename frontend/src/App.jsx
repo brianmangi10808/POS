@@ -13,6 +13,7 @@ import Product from './adminpage/Product';
 import Checkout from './homepage/Checkout';
 import BranchForm from './adminpage/BranchForm';
 import Inventory from './adminpage/Inventory';
+import Customer from './adminpage/Customer';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         </Route>
         <Route path='/admin' element={<Admin />}>
           <Route path='dashboard' element={<Dashboard />} />
+          <Route path='customer' element={<Customer />} />
           <Route path='category' element={<Category />} />
           <Route path='users' element={<Users />} />
           <Route path='inventory' element={<Inventory/>} />

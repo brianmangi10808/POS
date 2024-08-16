@@ -33,50 +33,32 @@ const Admin = () => {
     };
 
     return (
-        <div>
-            <div className="container">
-                <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-                    <button className="close-button" onClick={toggleSidebar}>×</button>
-                    <div className="profile-user">
-                        <div className="icon-profile"></div>
-                        <div className="username">{username}</div>
-                    </div>
-                    <ul>
-                        <li className='discord'>
-                            <NavLink to='/admin/dashboard' className="sidebar-names">Dashboard</NavLink>
-                        </li>
-                        <li className='discord'>
-                            <NavLink to='/admin/sales' className="sidebar-names">SALES</NavLink>
-                        </li>
-                        <li className='discord'>
-                            <NavLink to='/admin/category' className="sidebar-names">CATEGORY</NavLink>
-                        </li>
-                        <li className='discord'>
-                            <NavLink to='/admin/product' className="sidebar-names">PRODUCT</NavLink>
-                        </li>
-                        <li className='discord'>
-                            <NavLink to='/admin/users' className="sidebar-names">USER</NavLink>
-                        </li>
-                        <li className='discord'>
-                            <NavLink to='/customer' className="sidebar-names">CUSTOMER</NavLink>
-                        </li>
-                        <li className='discord'>
-                            <NavLink to='/admin/inventory' className="sidebar-names">STOCK</NavLink>
-                        </li>
-                       
-                        <li className='discord'>
-                            <NavLink to='/admin/branchform' className="sidebar-names">BRANCH</NavLink>
-                        </li>
-                    </ul>
-                </nav>
-                <div className="content">
-                    <header>
-                        <button className="menu-button" onClick={toggleSidebar}>☰</button>
-                    </header>
-                    <Outlet/>
-                </div>
-            </div>
+        <div className="app-container">
+    <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <button className="close-button" onClick={toggleSidebar}>×</button>
+        <div className="profile-section">
+            <div className="profile-icon"></div>
+            <div className="profile-username">{username}</div>
         </div>
+        <ul className="nav-links">
+            <li><NavLink to='/admin/dashboard' className="nav-item">DASHBOARD</NavLink></li>
+            <li><NavLink to='/admin/sales' className="nav-item">SALES</NavLink></li>
+            <li><NavLink to='/admin/category' className="nav-item">CATEGORY</NavLink></li>
+            <li><NavLink to='/admin/product' className="nav-item">PRODUCTS</NavLink></li>
+            <li><NavLink to='/admin/users' className="nav-item">USERS</NavLink></li>
+            <li><NavLink to='/admin/customer' className="nav-item">CUSTOMER</NavLink></li>
+            <li><NavLink to='/admin/inventory' className="nav-item">STOCK</NavLink></li>
+            <li><NavLink to='/admin/branchform' className="nav-item">STORES</NavLink></li>
+        </ul>
+    </nav>
+    <div className="content">
+        <header>
+            <button className="menu-button" onClick={toggleSidebar}>☰</button>
+        </header>
+        <Outlet/>
+    </div>
+</div>
+
     );
 }
 

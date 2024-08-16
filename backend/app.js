@@ -111,6 +111,65 @@ app.get('/api/signup-data', (req, res) => {
     });
 });
 
+app.get('/api/users', (req, res) => {
+    const query = 'SELECT * FROM users';
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.status(200).json(results);
+    });
+});
+
+
+app.put('/api/users/:id/assign-branch', (req, res) => {
+    const { id } = req.params;  // User ID
+    const { branch_id } = req.body;  // Branch ID to assign
+
+    if (!branch_id) {
+        return res.status(400).json({ error: 'Branch ID is required' });
+    }
+
+    const query = 'UPDATE users SET branch_id = ? WHERE id = ?';
+    db.query(query, [branch_id, id], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json({ message: 'Branch assigned successfully' });
+    });
+});
+
+app.get('/api/users-with-branches', (req, res) => {
+    const query = `
+        SELECT 
+            u.id AS user_id, 
+            u.name AS user_name, 
+            u.email AS user_email, 
+            u.role AS user_role, 
+            b.id AS branch_id, 
+            b.name AS branch_name, 
+            b.location AS branch_location
+        FROM 
+            users u
+        LEFT JOIN 
+            branches b ON u.branch_id = b.id
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.status(200).json(results);
+    });
+});
+
+
 // Create a New Category
 app.post('/api/categories', (req, res) => {
     const { name } = req.body;
@@ -179,9 +238,10 @@ app.get('/api/categories', (req, res) => {
         res.status(200).json(results);
     });
 });
+
 // Create Product
 app.post('/api/products', upload.single('image'), async (req, res) => {
-    const { name, description, price, quantity, category_id, branchDetails } = req.body; // branchDetails included
+    const { name, description, price, quantity, category_id } = req.body;
     let image = null;
     let image_type = 'image/jpeg'; // Store the image type as JPEG
 
@@ -194,8 +254,8 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
         }
     }
 
-    if (!name || !price || !quantity || !category_id || !Array.isArray(branchDetails)) {
-        return res.status(400).json({ error: 'Name, price, quantity, category_id, and branchDetails are required' });
+    if (!name || !price || !quantity || !category_id) {
+        return res.status(400).json({ error: 'Name, price, quantity, and category_id are required' });
     }
 
     const query = 'INSERT INTO products (name, description, price, quantity, category_id, image, image_type) VALUES (?, ?, ?, ?, ?, ?, ?)';
@@ -204,38 +264,9 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Database error' });
         }
-        const productId = results.insertId;
-
-        // Insert/Update branch-specific data
-        branchDetails.forEach(({ branch_id, quantity, price }) => {
-            db.query('SELECT * FROM branch_products WHERE branch_id = ? AND product_id = ?', [branch_id, productId], (err, results) => {
-                if (err) {
-                    console.error('Error checking branch product data:', err);
-                    return res.status(500).json({ error: 'Error checking branch product data' });
-                }
-
-                if (results.length > 0) {
-                    // Update existing record
-                    db.query('UPDATE branch_products SET quantity = ?, price = ? WHERE branch_id = ? AND product_id = ?', [quantity, price, branch_id, productId], (err, result) => {
-                        if (err) {
-                            console.error('Error updating branch product data:', err);
-                        }
-                    });
-                } else {
-                    // Insert new record
-                    db.query('INSERT INTO branch_products (branch_id, product_id, quantity, price) VALUES (?, ?, ?, ?)', [branch_id, productId, quantity, price], (err, result) => {
-                        if (err) {
-                            console.error('Error saving branch product data:', err);
-                        }
-                    });
-                }
-            });
-        });
-
-        res.status(201).json({ message: 'Product created', id: productId });
+        res.status(201).json({ message: 'Product created', id: results.insertId });
     });
 });
-
 
 //serving image
 app.get('/api/products/:id/image', (req, res) => {
@@ -332,7 +363,7 @@ app.get('/api/categories/:category_id/products', (req, res) => {
 
 
 
-app.get('/branches', (req, res) => {
+app.get('/api/branches', (req, res) => {
   db.query('SELECT * FROM branches', (err, results) => {
     if (err) {
       return res.status(500).json(err);
@@ -341,7 +372,7 @@ app.get('/branches', (req, res) => {
   });
 });
 
-app.get('/branches/:id', (req, res) => {
+app.get('/api/branches/:id', (req, res) => {
   const { id } = req.params;
   db.query('SELECT * FROM branches WHERE id = ?', [id], (err, result) => {
     if (err) {
@@ -351,7 +382,7 @@ app.get('/branches/:id', (req, res) => {
   });
 });
 
-app.post('/branches', (req, res) => {
+app.post('/api/branches', (req, res) => {
   const { name, location } = req.body;
   db.query('INSERT INTO branches (name, location) VALUES (?, ?)', [name, location], (err, result) => {
     if (err) {
@@ -361,7 +392,7 @@ app.post('/branches', (req, res) => {
   });
 });
 
-app.put('/branches/:id', (req, res) => {
+app.put('/api/branches/:id', (req, res) => {
   const { id } = req.params;
   const { name, location } = req.body;
   db.query('UPDATE branches SET name = ?, location = ? WHERE id = ?', [name, location, id], (err, result) => {
@@ -372,45 +403,121 @@ app.put('/branches/:id', (req, res) => {
   });
 });
 
-app.delete('/branches/:id', (req, res) => {
-  const { id } = req.params;
-  db.query('DELETE FROM branches WHERE id = ?', [id], (err, result) => {
-    if (err) {
-      return res.status(500).json(err);
-    }
-    res.json({ message: 'Branch deleted successfully' });
-  });
-});
+app.delete('/api/branches/:id', (req, res) => {
+    const branchId = req.params.id;
 
+    // Delete stock allocations for the branch
+    const deleteStockAllocationsQuery = 'DELETE FROM branch_products WHERE branch_id = ?';
 
-//branc_product
-app.post('/branch-products', (req, res) => {
-    const { branch_id, product_id, quantity, price } = req.body;
-    // Check if the record already exists
-    db.query('SELECT * FROM branch_products WHERE branch_id = ? AND product_id = ?', [branch_id, product_id], (err, results) => {
-        if (err) {
-            return res.status(500).send({ error: 'Error checking branch product data' });
-        }
+    // Delete the branch
+    const deleteBranchQuery = 'DELETE FROM branches WHERE id = ?';
 
-        if (results.length > 0) {
-            // Update existing record
-            db.query('UPDATE branch_products SET quantity = ?, price = ? WHERE branch_id = ? AND product_id = ?', [quantity, price, branch_id, product_id], (err, result) => {
+    db.beginTransaction((err) => {
+        if (err) return res.status(500).json({ error: 'Transaction error' });
+
+        db.query(deleteStockAllocationsQuery, [branchId], (err, results) => {
+            if (err) {
+                return db.rollback(() => {
+                    console.error('Error deleting stock allocations:', err);
+                    res.status(500).json({ error: 'Error deleting stock allocations' });
+                });
+            }
+
+            db.query(deleteBranchQuery, [branchId], (err, results) => {
                 if (err) {
-                    return res.status(500).send({ error: 'Error updating branch product data' });
+                    return db.rollback(() => {
+                        console.error('Error deleting branch:', err);
+                        res.status(500).json({ error: 'Error deleting branch' });
+                    });
                 }
-                res.status(200).send({ message: 'Branch product data updated successfully' });
+
+                db.commit((err) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            console.error('Transaction commit error:', err);
+                            res.status(500).json({ error: 'Transaction commit error' });
+                        });
+                    }
+
+                    res.status(200).json({ message: 'Branch and associated stock allocations deleted successfully' });
+                });
             });
-        } else {
-            // Insert new record
-            db.query('INSERT INTO branch_products (branch_id, product_id, quantity, price) VALUES (?, ?, ?, ?)', [branch_id, product_id, quantity, price], (err, result) => {
-                if (err) {
-                    return res.status(500).send({ error: 'Error saving branch product data' });
-                }
-                res.status(201).send({ message: 'Branch product data saved successfully' });
-            });
-        }
+        });
     });
 });
+
+
+//inventory
+app.post('/api/allocate-stock', async (req, res) => {
+    const { product_id, category_id, allocations } = req.body;
+
+    try {
+        // Log request body for debugging
+        console.log('Request body:', req.body);
+
+        // Process each allocation
+        for (const allocation of allocations) {
+            const { branch_id, quantity } = allocation;
+
+            if (!branch_id || !quantity) {
+                throw new Error('Missing branch_id or quantity in allocations.');
+            }
+
+            await db.query(`
+                INSERT INTO branch_products (branch_id, product_id, quantity, category_id)
+                VALUES (?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity);
+            `, [branch_id, product_id, quantity, category_id]);
+        }
+
+        res.status(200).send({ success: true });
+    } catch (error) {
+        console.error('Error allocating stock:', error);
+        res.status(500).send({ success: false, error: 'Internal Server Error' });
+    }
+});
+
+
+app.get('/api/allocate-stock', (req, res) => {
+    db.query('SELECT * FROM branch_products', (error, results) => {
+        if (error) {
+            console.error('Error fetching stock data:', error); // Log the error
+            return res.status(500).send({ success: false, error: 'Internal Server Error' });
+        }
+        res.status(200).json(results);
+    });
+});
+
+
+app.get('/api/allocated-stocks', (req, res) => {
+    const query = `
+        SELECT
+            bp.branch_id,
+            b.name AS branch_name,
+            bp.product_id,
+            p.name AS product_name,
+            bp.quantity,
+            bp.category_id,
+            c.name AS category_name
+        FROM
+            branch_products bp
+        JOIN
+            branches b ON bp.branch_id = b.id
+        JOIN
+            products p ON bp.product_id = p.id
+        JOIN
+            categories c ON bp.category_id = c.id;
+    `;
+
+    db.query(query, (error, results) => {
+        if (error) {
+            console.error('Error fetching allocated stocks:', error);
+            return res.status(500).send({ success: false, error: 'Internal Server Error' });
+        }
+        res.status(200).json(results);
+    });
+});
+
 
 
 

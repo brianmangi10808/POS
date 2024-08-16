@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
+import './Branch.css'
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 
 
 // URL of your API
-const API_URL = 'http://localhost:3000/branches';
+const API_URL = 'http://localhost:3000/api/branches';
 
 const BranchForm= () => {
     const [branches, setBranches] = useState([]);
@@ -63,50 +63,51 @@ const BranchForm= () => {
 
     return (
         <div>
-            <form onSubmit={handleCreateOrUpdate} className='branch-form'>
-                <div className='branch-input'>
-                    <label>Branch Name</label>
-                    <input
-                        type="text"
-                        placeholder='Type branch name ..'
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className='branch-input'>
-                    <label>Branch Location</label>
-                    <input
-                        type="text"
-                        placeholder='Type branch location ..'
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        required
-                    />
-                </div>
-                {error && <p>{error}</p>}
-                <button type="submit">
-                    {editingBranchId ? 'Update Branch' : 'Create Branch'}
-                </button>
-            </form>
-            <div className="Branch-list">
-                {branches.length === 0 ? (
-                    <p>No branches found</p>
-                ) : (
-                    <ul>
-                        {branches.map((branch) => (
-                            <li key={branch.id}>
-                                <div> {branch.id}  {branch.name} - {branch.location}</div>
-                                <div className="branch-button">
-                                    <button onClick={() => handleEdit(branch)}><EditIcon boxSize={15} /></button>
-                                    <button onClick={() => handleDelete(branch.id)}><DeleteIcon boxSize={15} /></button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
+    <form onSubmit={handleCreateOrUpdate} className='branch-form'>
+        <div className='branch-input'>
+            <label>Branch Name</label>
+            <input
+                type="text"
+                placeholder='Type branch name ..'
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+            />
         </div>
+        <div className='branch-input'>
+            <label>Branch Location</label>
+            <input
+                type="text"
+                placeholder='Type branch location ..'
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                required
+            />
+        </div>
+        {error && <p>{error}</p>}
+        <button type="submit">
+            {editingBranchId ? 'Update Branch' : 'Create Branch'}
+        </button>
+    </form>
+    <div className="Branch-list">
+        {branches.length === 0 ? (
+            <p>No branches found</p>
+        ) : (
+            <ul>
+                {branches.map((branch) => (
+                    <li key={branch.id}>
+                        <div>   {branch.name} - {branch.location}</div>
+                        <div className="branch-button">
+                            <button onClick={() => handleEdit(branch)}><EditIcon boxSize={18} /></button>
+                            <button onClick={() => handleDelete(branch.id)}><DeleteIcon boxSize={18} /></button>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        )}
+    </div>
+</div>
+
     );
 };
 
