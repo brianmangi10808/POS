@@ -1,117 +1,96 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function Users() {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [role, setRole] = useState('user');
-    const [branchId, setBranchId] = useState('');
+    const [users, setUsers] = useState([]);
     const [branches, setBranches] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const [selectedUser, setSelectedUser] = useState('');
+    const [selectedBranch, setSelectedBranch] = useState('');
 
+    // Fetch users with branch details
     useEffect(() => {
-        // Fetch branches for the dropdown
+        axios.get('http://localhost:3000/api/users-with-branches')
+            .then(response => setUsers(response.data))
+            .catch(error => console.error('Error fetching users:', error));
+    }, []);
+
+    // Fetch branches
+    useEffect(() => {
         axios.get('http://localhost:3000/api/branches')
             .then(response => setBranches(response.data))
             .catch(error => console.error('Error fetching branches:', error));
     }, []);
 
-   
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        setSuccess('');
-        try {
-            await axios.post('http://localhost:3000/api/users', {
-                name,
-                email,
-                password,
-                role,
-                branch_id: branchId
-            });
-            setSuccess('User created successfully');
-            // Reset form after successful creation
-            setName('');
-            setEmail('');
-            setPassword('');
-            setRole('user');
-            setBranchId('');
-        } catch (error) {
-            console.error('Error creating user:', error.response ? error.response.data : error.message);
-            setError(error.response ? error.response.data.error : 'Failed to create user');
-        } finally {
-            setLoading(false);
+    // Handle branch assignment
+    const handleAssign = () => {
+        if (!selectedUser || !selectedBranch) {
+            alert('Please select both user and branch.');
+            return;
         }
+
+        axios.put(`http://localhost:3000/api/users/${selectedUser}/assign-branch`, { branch_id: selectedBranch })
+            .then(response => alert(response.data.message))
+            .catch(error => alert(error.response.data.error));
     };
-    
+
     return (
-        <div>
-            <h1>Create User</h1>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {success && <p style={{ color: 'green' }}>{success}</p>}
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Name:</label>
-                    <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Email:</label>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Password:</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Role:</label>
-                    <select
-                        value={role}
-                        onChange={(e) => setRole(e.target.value)}
-                        required
-                    >
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Branch:</label>
-                    <select
-                        value={branchId}
-                        onChange={(e) => setBranchId(e.target.value)}
-                        required
-                    >
-                        <option value="">Select a branch</option>
-                        {branches.map(branch => (
-                            <option key={branch.id} value={branch.id}>
-                                {branch.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Creating...' : 'Create User'}
-                </button>
-            </form>
+        <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+            <h2>Assign Branch to User</h2>
+            <div style={{ marginBottom: '20px' }}>
+            <select value={selectedUser} onChange={e => setSelectedUser(e.target.value)}>
+    <option value="">Select User</option>
+    {Array.isArray(users) && users.map(user => (
+        <option key={user.id} value={user.id}>{user.name}</option>
+    ))}
+</select>
+
+
+
+
+                <select value={selectedBranch} onChange={e => setSelectedBranch(e.target.value)}>
+                    <option value="">Select Branch</option>
+                    {Array.isArray(branches) && branches.map(branch => (
+                        <option key={branch.id} value={branch.id}>{branch.name}</option>
+                    ))}
+                </select>
+
+                <button onClick={handleAssign}>Assign Branch</button>
+            </div>
+
+            <h2>Users List</h2>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                    <tr style={{ backgroundColor: '#f2f2f2' }}>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>User ID</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Name</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Email</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Role</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Branch ID</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Branch Name</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Branch Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+    {users.length > 0 ? (
+        users.map(user => (
+            <tr key={user.user_id}>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_id}</td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_name}</td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_email}</td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_role}</td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.branch_id || 'N/A'}</td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.branch_name || 'N/A'}</td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.branch_location || 'N/A'}</td>
+            </tr>
+        ))
+    ) : (
+        <tr>
+            <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>No users found</td>
+        </tr>
+    )}
+</tbody>
+
+            </table>
         </div>
     );
 }

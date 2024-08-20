@@ -1,0 +1,130 @@
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.inventory-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.inventory-form {
+    margin-bottom: 40px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #34495e;
+}
+
+.form-group select,
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #bdc3c7;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.branch-quantity {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.branch-quantity label {
+    flex: 1;
+    margin-right: 12px;
+    font-size: 16px;
+}
+
+.submit-button {
+    padding: 12px 24px;
+    font-size: 18px;
+    color: #ffffff;
+    background-color: #3498db;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.submit-button:hover {
+    background-color: #2980b9;
+    transform: scale(1.02);
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+.allocated-stocks {
+    margin-top: 40px;
+}
+
+.section-title,
+.section-subtitle {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.stocks-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stocks-table th,
+.stocks-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.stocks-table th {
+    background-color: #3498db;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.stocks-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.stocks-table tr:hover {
+    background-color: #f1f1f1;
+}
