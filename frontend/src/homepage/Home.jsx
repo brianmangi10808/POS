@@ -1,10 +1,9 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { UserContext } from '../signup/UserContext';
 import axios from 'axios';
-import { DeleteIcon } from '@chakra-ui/icons';
+import { DeleteIcon,CloseIcon } from '@chakra-ui/icons';
 import './Home.css';
 import profile from '../assets/profile.jpg';
-import { NavLink, Outlet } from 'react-router-dom';
 
 const Home = () => {
   const { username } = useContext(UserContext);
@@ -14,6 +13,10 @@ const Home = () => {
   const [cart, setCart] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [totalAmount, setTotalAmount] = useState(0);
   const [imageUrls, setImageUrls] = useState({});
 
   useEffect(() => {
@@ -70,6 +73,46 @@ const Home = () => {
       console.error(err);
     }
   };
+
+  const handlePaymentClick = (method) => {
+    setPaymentMethod(method);
+    if (method === 'MPESA') {
+      setTotalAmount(calculateTotal()); 
+      setShowModal(true); 
+    }
+  };
+
+ // React component
+const handleModalSubmit = async () => {
+
+  let formattedPhoneNumber = phoneNumber.trim();
+
+  if (formattedPhoneNumber.startsWith('0')) {
+    formattedPhoneNumber = `254${formattedPhoneNumber.substring(1)}`;
+  }
+
+  try {
+    const response = await fetch('http://localhost:3000/mpesa/pay', {  // Updated port
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        amount: totalAmount,
+        phoneNumber: formattedPhoneNumber,
+        accountReference: 'Swiftel Fiber'
+      }),
+    });
+
+
+    const result = await response.text();
+    toast.success(result); // Display success notification
+    setShowModal(false);
+  } catch (error) {
+    toast.error('Error initiating payment'); // Display error notification
+  }
+};
+
 
   const handleAddToCart = (product) => {
     const existingProduct = cart.find(item => item.id === product.id);
@@ -166,6 +209,7 @@ const Home = () => {
             </div>
           )}
         </div>
+        
         <div className="checkout-form">
           <div className="cart-summary">
             <h3>Cart Items:</h3>
@@ -196,12 +240,48 @@ const Home = () => {
               </ul>
             )}
             <h3 className="total-price">Total: KSH {calculateTotal()}</h3>
-            <button className="complete-purchase-btn">Complete Purchase</button>
+            <div className="cash-mpesa-layout">
+              <button
+                className={`complete-purchase-btn ${paymentMethod === 'MPESA' ? 'active' : ''}`}
+                onClick={() => handlePaymentClick('MPESA')}
+              >
+                MPESA
+              </button>
+              <button
+                className={`complete-purchase-btn ${paymentMethod === 'CASH' ? 'active' : ''}`}
+                onClick={() => handlePaymentClick('CASH')}
+              >
+                CASH
+              </button>
+              <button
+                className={`complete-purchase-btn ${paymentMethod === 'MULTIPLE' ? 'active' : ''}`}
+                onClick={() => handlePaymentClick('MULTIPLE')}
+              >
+                MULTIPLE PAY
+              </button>
+            </div>
           </div>
-        
-         
         </div>
       </div>
+  
+      {showModal && (
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <h2>Complete MPESA Payment</h2>
+      <p>Total Amount: KSH {totalAmount}</p>
+      <label htmlFor="phoneNumber">Phone Number:</label>
+      <input
+        type="tel"
+        id="phoneNumber"
+        value={phoneNumber}
+        onChange={(e) => setPhoneNumber(e.target.value)}
+      />
+      <button onClick={handleModalSubmit}>Finalize Payment</button>
+      <button onClick={() => setShowModal(false)}><CloseIcon /></button>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

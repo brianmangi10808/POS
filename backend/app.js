@@ -1,12 +1,21 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const axios = require('axios');
 const port = 3000;
 const bcrypt = require('bcryptjs');
 const sharp = require('sharp');
 const mysql = require('mysql');
 const multer = require('multer');
 
+
+
+// M-Pesa credentials
+const consumerKey = 'imcYRrOHYGHbaTAAg5S3zwuD2gdSrv5e9FAfz5U9AZfOW4nK';
+const consumerSecret = 'HOE8IwjzuZBVFi7a6S246u8GQpsQOxLS30wGBrPq5QO6dFychKW6mM8R4OcbXgMv';
+const shortCode = '174379';
+const passKey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
+const callbackUrl = 'https://fa32-102-217-64-50.ngrok-free.app/mpesa/callback'; 
 // Middleware for parsing JSON data
 app.use(express.json());
 
@@ -33,6 +42,142 @@ db.connect(err => {
     if (err) throw err;
     console.log('MySQL Connected...');
 });
+
+
+
+// Function to get the current timestamp
+const getTimestamp = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+  
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  };
+  
+  // Function to get OAuth token
+  const getToken = async () => {
+    const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
+    try {
+      const response = await axios.get('https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials', {
+        headers: {
+          Authorization: `Basic ${auth}`
+        }
+      });
+      const token = response.data.access_token;
+      console.log('Access Token:', token); // Print the token to the terminal
+      return token;
+    } catch (error) {
+      console.error('Error obtaining token:', error.response ? error.response.data : error.message);
+    }
+  };
+  
+  // Function to initiate STK Push
+  const initiateSTKPush = async (amount, phoneNumber, accountReference) => {
+    const token = await getToken();
+    const timestamp = getTimestamp();
+    const password = Buffer.from(`${shortCode}${passKey}${timestamp}`).toString('base64');
+  
+    const data = {
+      BusinessShortCode: shortCode,
+      Password: password,
+      Timestamp: timestamp,
+      TransactionType: 'CustomerPayBillOnline',
+      Amount: parseInt(amount, 10),
+      PartyA: phoneNumber,
+      PartyB: shortCode,
+      PhoneNumber: phoneNumber,
+      CallBackURL: callbackUrl,
+      AccountReference: accountReference,
+      TransactionDesc: 'Payment Description'
+    };
+  
+    try {
+      const response = await axios.post('https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest', data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('STK Push Response:', response.data);
+    } catch (error) {
+      console.error('Error initiating STK Push:', error.response ? error.response.data : error.message);
+    }
+  };
+  
+  // Endpoint to handle M-Pesa STK Push request
+app.post('/mpesa/pay', async (req, res) => {
+    const { amount, phoneNumber, accountReference } = req.body;
+  
+    if (!amount || !phoneNumber || !accountReference) {
+      return res.status(400).send('Missing required fields');
+    }
+  
+    try {
+      await initiateSTKPush(amount, phoneNumber, accountReference);
+      res.send('STK Push initiated');
+    } catch (error) {
+      res.status(500).send('Error initiating STK Push');
+    }
+  });
+  
+  // Endpoint to handle M-Pesa callback
+  app.post('/mpesa/callback', (req, res) => {
+    console.log('Callback received:', JSON.stringify(req.body, null, 2)); // Log the full callback for debugging
+  
+    if (req.body && req.body.Body && req.body.Body.stkCallback) {
+      const callbackData = req.body.Body.stkCallback;
+      const items = callbackData.CallbackMetadata.Item;
+  
+      let amount, mpesaReceiptNumber, transactionDate, phoneNumber;
+  
+      items.forEach(item => {
+        switch (item.Name) {
+          case 'Amount':
+            amount = item.Value;
+            break;
+          case 'MpesaReceiptNumber':
+            mpesaReceiptNumber = item.Value;
+            break;
+          case 'TransactionDate':
+            transactionDate = item.Value;
+            break;
+          case 'PhoneNumber':
+            phoneNumber = item.Value;
+            break;
+        }
+      });
+  
+      console.log(`Payment received:
+        Amount: ${amount}
+        Mpesa Receipt Number: ${mpesaReceiptNumber}
+        Date: ${transactionDate}
+        Phone Number: ${phoneNumber}
+      `);
+  
+      // Insert payment data into MySQL
+      const query = 'INSERT INTO payments (amount, mpesa_receipt_number, transaction_date, phone_number) VALUES (?, ?, ?, ?)';
+      const values = [amount, mpesaReceiptNumber, transactionDate, phoneNumber];
+  
+      db.query(query, values, (err, result) => {
+        if (err) {
+          console.error('Error inserting payment data:', err);
+          res.sendStatus(500); // Internal server error
+          return;
+        }
+        console.log('Payment data inserted:', result);
+        res.sendStatus(200); // OK
+      });
+  
+    } else {
+      console.error('Unexpected callback structure:', req.body);
+      res.sendStatus(400); // Bad request
+    }
+  });
+  
 
 // List of predefined admin emails
 const adminEmails = ['brian@gmail.com', 'faith@gmail.com', 'sharon@gmail.com'];

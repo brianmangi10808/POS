@@ -15,12 +15,17 @@ import BranchForm from './adminpage/BranchForm';
 import Inventory from './adminpage/Inventory';
 import Customer from './adminpage/Customer';
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function App() {
   return (
     <UserProvider>
+      <ToastContainer />
       <Routes>
         <Route path='/' element={<Login />} />
         <Route path='/register' element={<Register />} />
+       
         <Route path='/home' element={<Home />} >
           <Route path='checkout' element={<Checkout />} />
           <Route index element={<Checkout />} />
@@ -30,7 +35,7 @@ function App() {
           <Route path='customer' element={<Customer />} />
           <Route path='category' element={<Category />} />
           <Route path='users' element={<Users />} />
-          <Route path='inventory' element={<Inventory/>} />
+          <Route path='inventory' element={<Inventory />} />
           <Route path='branchform' element={<BranchForm />} />
           <Route path='sales' element={<Sales />} />
           <Route path='product' element={<Product />} />
