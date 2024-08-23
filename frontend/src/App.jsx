@@ -17,6 +17,7 @@ import Customer from './adminpage/Customer';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Modal from './adminpage/Modal';
 
 function App() {
   return (
@@ -37,8 +38,13 @@ function App() {
           <Route path='users' element={<Users />} />
           <Route path='inventory' element={<Inventory />} />
           <Route path='branchform' element={<BranchForm />} />
-          <Route path='sales' element={<Sales />} />
-          <Route path='product' element={<Product />} />
+          <Route path='sales' element={<Sales />} >
+          <Route path='modal' element={<Modal />} />
+           </Route>
+          <Route path='product' element={<Product />}/>
+
+          
+           
           <Route index element={<Dashboard />} /> {/* Default route */}
         </Route>
       </Routes>

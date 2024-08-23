@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import "./Product.css"
+import "./Product.css";
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
-
 
 // URL of your API
 const API_URL = 'http://localhost:3000/api/products';
@@ -54,20 +52,38 @@ const Product = () => {
         }));
     };
 
+    const generateSKU = () => {
+        if (!product.name) return '';
+    
+        const namePart = product.name.split(' ').map(word => word[0].toUpperCase()).join('');
+        const timestamp = Date.now();
+    
+        return `${namePart}-${timestamp}`;
+    };
+    
     const handleCreateOrUpdate = async (e) => {
         e.preventDefault();
         setError('');
-
+    
+        const sku = generateSKU();
+    
+        if (!sku) {
+            setError('Error generating SKU. Please ensure all fields are filled out correctly.');
+            return;
+        }
+    
         const formData = new FormData();
         formData.append('name', product.name);
         formData.append('description', product.description);
         formData.append('price', product.price);
         formData.append('quantity', product.quantity);
         formData.append('category_id', product.category_id);
+        formData.append('sku', sku);
+    
         if (product.image) {
             formData.append('image', product.image);
         }
-
+    
         try {
             if (editingProductId) {
                 await axios.put(`${API_URL}/${editingProductId}`, formData, {
@@ -79,7 +95,7 @@ const Product = () => {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
             }
-            fetchProducts();
+            fetchProducts(); // Refresh products
             setProduct({
                 name: '',
                 description: '',
@@ -92,7 +108,7 @@ const Product = () => {
             setError(err.response ? err.response.data.error : 'Error saving product');
         }
     };
-
+    
     const handleEdit = (product) => {
         setProduct({
             name: product.name,
@@ -108,124 +124,127 @@ const Product = () => {
     const handleDelete = async (id) => {
         try {
             await axios.delete(`${API_URL}/${id}`);
-            fetchProducts();
+            fetchProducts(); // Refresh products
         } catch (err) {
             setError(err.response ? err.response.data.error : 'Error deleting product');
         }
     };
 
-    
-
     return (
-        <div class="product-management-container">
-        <h1 class="page-title">Product Management</h1>
-        <form class="form-product" onSubmit={handleCreateOrUpdate}>
-            <div class="form-group">
-                <label htmlFor="name">Product Name</label>
-                <input
-                    id="name"
-                    type="text"
-                    name="name"
-                    value={product.name}
-                    onChange={handleInputChange}
-                    required
-                />
-            </div>
-            <div class="form-group">
-                <label htmlFor="description">Description</label>
-                <input
-                    id="description"
-                    type="text"
-                    name="description"
-                    value={product.description}
-                    onChange={handleInputChange}
-                />
-            </div>
-            <div class="form-group">
-                <label htmlFor="price">Price</label>
-                <input
-                    id="price"
-                    type="number"
-                    name="price"
-                    value={product.price}
-                    onChange={handleInputChange}
-                    required
-                />
-            </div>
-            <div class="form-group">
-                <label htmlFor="quantity">Quantity</label>
-                <input
-                    id="quantity"
-                    type="number"
-                    name="quantity"
-                    value={product.quantity}
-                    onChange={handleInputChange}
-                    required
-                />
-            </div>
-            <div class="form-group">
-                <label htmlFor="category_id">Category</label>
-                <select
-                    id="category_id"
-                    name="category_id"
-                    value={product.category_id}
-                    onChange={handleInputChange}
-                    required
+        <div className="product-management-container">
+            <h1 className="page-title">Product Management</h1>
+            <form className="form-product" onSubmit={handleCreateOrUpdate}>
+                <div className="form-group">
+                    <label htmlFor="name">Product Name</label>
+                    <input
+                        id="name"
+                        type="text"
+                        name="name"
+                        value={product.name}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="description">Description</label>
+                    <input
+                        id="description"
+                        type="text"
+                        name="description"
+                        value={product.description}
+                        onChange={handleInputChange}
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="price">Price</label>
+                    <input
+                        id="price"
+                        type="number"
+                        name="price"
+                        value={product.price}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="quantity">Quantity</label>
+                    <input
+                        id="quantity"
+                        type="number"
+                        name="quantity"
+                        value={product.quantity}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="category_id">Category</label>
+                    <select
+                        id="category_id"
+                        name="category_id"
+                        value={product.category_id}
+                        onChange={handleInputChange}
+                        required
+                    >
+                        <option value="">Select a category</option>
+                        {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label htmlFor="image">Image</label>
+                    <input
+                        id="image"
+                        type="file"
+                        name="image"
+                        onChange={handleInputChange}
+                    />
+                </div>
+                {error && <p className="error-message">{error}</p>}
+                <button
+                    className="btn-product-submit"
+                    type="submit"
+                    disabled={!product.name || !product.category_id || categories.length === 0}
                 >
-                    <option value="">Select a category</option>
-                    {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                        </option>
+                    {editingProductId ? 'Update Product' : 'Create Product'}
+                </button>
+            </form>
+
+            <h2 className="section-title">Products</h2>
+            <div className="category-product-align">
+                <h3 className="category-title">Category</h3>
+            </div>
+            {products.length === 0 ? (
+                <p className="no-products">No products found</p>
+            ) : (
+                <ul className="product-list">
+                    {products.map((prod, index) => (
+                        <li className="product-item" key={prod.id}>
+                            <div className="product-details">
+                                <span className="product-number">{index + 1}. </span>
+                                <span className="product-name">{prod.name}</span>
+                                <span className="product-sku">SKU: {prod.sku}</span>
+                                <span className="product-quantity">Q: {prod.quantity}</span>
+                                <span className="category-name">{prod.category_name}</span>
+                            </div>
+                            <div className="product-buttons">
+                                <button className="btn-edit" onClick={() => handleEdit(prod)}>
+                                    <EditIcon boxSize={17} />
+                                    <span className="btn-text">Edit</span>
+                                </button>
+                                <button className="btn-delete" onClick={() => handleDelete(prod.id)}>
+                                    <DeleteIcon boxSize={17} />
+                                    <span className="btn-text">Delete</span>
+                                </button>
+                            </div>
+                        </li>
                     ))}
-                </select>
-            </div>
-            <div class="form-group">
-                <label htmlFor="image">Image</label>
-                <input
-                    id="image"
-                    type="file"
-                    name="image"
-                    onChange={handleInputChange}
-                />
-            </div>
-            {error && <p class="error-message">{error}</p>}
-            <button class="btn-product-submit" type="submit">
-                {editingProductId ? 'Update Product' : 'Create Product'}
-            </button>
-        </form>
-    
-        <h2 class="section-title">Products</h2>
-        <div class="category-product-align">
-            <h3 class="category-title">Category</h3>
+                </ul>
+            )}
         </div>
-        {products.length === 0 ? (
-            <p class="no-products">No products found</p>
-        ) : (
-            <ul class="product-list">
-                {products.map((prod, index) => (
-                    <li class="product-item" key={prod.id}>
-                        <div class="product-details">
-                            <span class="product-number">{index + 1}. </span>
-                            <span class="product-name">{prod.name}</span>
-                            <span class="category-name">{prod.category_name}</span>
-                        </div>
-                        <div class="product-buttons">
-                            <button class="btn-edit" onClick={() => handleEdit(prod)}>
-                                <EditIcon boxSize={17} />
-                                <span class="btn-text">Edit</span>
-                            </button>
-                            <button class="btn-delete" onClick={() => handleDelete(prod.id)}>
-                                <DeleteIcon boxSize={17} />
-                                <span class="btn-text">Delete</span>
-                            </button>
-                        </div>
-                    </li>
-                ))}
-            </ul>
-        )}
-    </div>
-    
     );
 };
 

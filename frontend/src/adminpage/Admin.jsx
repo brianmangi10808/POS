@@ -5,7 +5,7 @@ import axios from 'axios';
 
 import { UserContext } from '../signup/UserContext';
 import { NavLink, Outlet } from 'react-router-dom';
-import Dashboard from './Dashboard';
+
 
 const Admin = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);

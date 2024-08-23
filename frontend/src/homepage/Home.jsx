@@ -15,9 +15,13 @@ const Home = () => {
   const [error, setError] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showModalCash, setShowModalCash] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
   const [imageUrls, setImageUrls] = useState({});
+   const[amountReceived, setAmountReceived] = useState({})
+   const[change,setChange] = useState({})
+
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -80,43 +84,77 @@ const Home = () => {
       setTotalAmount(calculateTotal()); 
       setShowModal(true); 
     }
+     else if(method === 'CASH'){
+      setTotalAmount(calculateTotal)
+      setShowModalCash(true);
+    }
   };
 
- // React component
-const handleModalSubmit = async () => {
-
-  let formattedPhoneNumber = phoneNumber.trim();
-
-  if (formattedPhoneNumber.startsWith('0')) {
-    formattedPhoneNumber = `254${formattedPhoneNumber.substring(1)}`;
-  }
-
-  try {
-    const response = await fetch('http://localhost:3000/mpesa/pay', {  // Updated port
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        amount: totalAmount,
-        phoneNumber: formattedPhoneNumber,
-        accountReference: 'Swiftel Fiber'
-      }),
-    });
-
-
-    const result = await response.text();
-    toast.success(result); // Display success notification
-    setShowModal(false);
-  } catch (error) {
-    toast.error('Error initiating payment'); // Display error notification
-  }
-};
-
-
+  const handleModalSubmit = async () => {
+    let formattedPhoneNumber = phoneNumber.trim();
+  
+    if (formattedPhoneNumber.startsWith('0')) {
+      formattedPhoneNumber = `254${formattedPhoneNumber.substring(1)}`;
+    }
+  
+    const totalAmount = calculateTotal(); // Ensure this value is correctly set
+  
+    try {
+      const transactionResponse = await axios.post('http://localhost:3000/api/transactions', {
+        customerName: username,
+        items: cart.map(item => ({
+          productId: item.id,
+          sku: item.sku,
+          quantity: item.quantity
+        })),
+        totalAmount: totalAmount,
+        paymentMethod: paymentMethod
+      });
+  
+      const transactionId = transactionResponse.data.transactionId;
+  
+      if (paymentMethod === 'MPESA') {
+        const response = await fetch('http://localhost:3000/api/mpesa/pay', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount: totalAmount,
+            phoneNumber: formattedPhoneNumber,
+            accountReference: 'Swiftel Fiber',
+            transactionId: transactionId
+          })
+        });
+  
+        const result = await response.text();
+        alert(result);
+      } else if (paymentMethod === 'CASH') {
+        alert(`Cash payment of KSH ${totalAmount} received successfully!`);
+      }
+  
+      await axios.post('http://localhost:3000/api/update-stock', {
+        items: cart.map(item => ({
+          productId: item.id,
+          sku: item.sku,
+          quantity: item.quantity
+        })),
+        totalAmount: totalAmount // Include totalAmount here if needed
+      });
+  
+      setCart([]);
+      setShowModal(false);
+      setShowModalCash(false);
+    } catch (error) {
+      setError('Error during checkout');
+      console.error('Error during checkout:', error.response ? error.response.data : error.message);
+    }
+  };
+  
+  
   const handleAddToCart = (product) => {
     const existingProduct = cart.find(item => item.id === product.id);
-
+  
     if (existingProduct) {
       setCart(cart.map(item =>
         item.id === product.id
@@ -124,9 +162,11 @@ const handleModalSubmit = async () => {
           : item
       ));
     } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
+      setCart([...cart, { ...product, quantity: 1, sku: product.sku }]); // Add SKU here
     }
   };
+  
+  
 
   const handleRemoveFromCart = (productId) => {
     setCart(cart.filter(item => item.id !== productId));
@@ -147,6 +187,43 @@ const handleModalSubmit = async () => {
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleAmountReceivedChange = (e) => {
+    const receivedAmount = parseFloat(e.target.value) || '';
+    setAmountReceived(receivedAmount);
+    setChange(receivedAmount - totalAmount);
+  };
+// Function to check the transaction status
+const checkTransactionStatus = async (transactionId) => {
+  const token = await getToken(); // Reuse your existing token function
+
+  const data = {
+      Initiator: 'testapiuser',
+      SecurityCredential: 'ClONZiMYBpc65lmpJ7nvnrDmUe0WvHvA5QbOsPjEo92B6IGFwDdvdeJIFL0kgwsEKWu6SQKG4ZZUxjC', // Replace with actual encrypted credential
+      CommandID: 'TransactionStatusQuery',
+      TransactionID: transactionId, // Transaction ID to check
+      PartyA: shortCode, // Your shortcode
+      IdentifierType: '4', // Type of organization receiving the transaction (4 for shortcode)
+      ResultURL: 'https://yourdomain.com/mpesa/transactionstatus/result', // Replace with your actual result URL
+      QueueTimeOutURL: 'https://yourdomain.com/mpesa/transactionstatus/timeout', // Replace with your actual timeout URL
+      Remarks: 'Checking transaction status',
+      Occasion: 'Transaction status check'
+  };
+
+  try {
+      const response = await axios.post('https://sandbox.safaricom.co.ke/mpesa/transactionstatus/v1/query', data, {
+          headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+          }
+      });
+      console.log('Transaction Status Response:', response.data);
+      return response.data; // Return the response data for further processing
+  } catch (error) {
+      console.error('Error checking transaction status:', error.response ? error.response.data : error.message);
+  }
+};
+
 
   return (
     <div className="home-container">
@@ -268,8 +345,8 @@ const handleModalSubmit = async () => {
   <div className="modal-overlay">
     <div className="modal-content">
       <h2>Complete MPESA Payment</h2>
-      <p>Total Amount: KSH {totalAmount}</p>
-      <label htmlFor="phoneNumber">Phone Number:</label>
+      <h3>Total : KSH {totalAmount}</h3>
+      <label className='amount_cash'  htmlFor="phoneNumber">Phone Number:</label>
       <input
         type="tel"
         id="phoneNumber"
@@ -281,6 +358,30 @@ const handleModalSubmit = async () => {
     </div>
   </div>
 )}
+{showModalCash && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Complete Cash Payment</h2>
+            <h3>Total : KSH {totalAmount}</h3>
+            <label className='amount_cash' htmlFor="amountReceived">Amount Received:</label>
+            <input
+              type="number"
+              id="amountReceived"
+              value={amountReceived}
+              onChange={handleAmountReceivedChange}
+            />
+            <label className='amount_cash' htmlFor="change">Change:</label>
+            <input
+              type="text"
+              id="change"
+              value={change}
+              readOnly
+            />
+            <button onClick={handleModalSubmit}>Finalize Payment</button>
+            <button onClick={() => setShowModalCash(false)}><CloseIcon /></button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
