@@ -72,5 +72,33 @@ router.get('/categories', (req, res) => {
     });
 });
 
+router.get('/products/details', (req, res) => {
+    const query = `
+        SELECT 
+            d.id,
+            d.product_id,
+            p.name AS product_name,
+            d.branch_id,
+            b.name AS branch_name,
+            d.detail_type,
+            d.detail_description,
+            d.detail_date,
+            d.created_at,
+            d.updated_at
+        FROM details d
+        JOIN products p ON d.product_id = p.id
+        JOIN branches b ON d.branch_id = b.id
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.status(200).json(results);
+    });
+});
+
+
 
 module.exports = router;

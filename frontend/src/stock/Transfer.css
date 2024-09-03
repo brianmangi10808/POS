@@ -1,0 +1,23 @@
+
+.transfer-container{
+    display: flex;
+    flex-direction: column;
+}
+
+.tranfer-button{
+    display: flex;
+    width: 96%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    margin: 15px;
+    background-color: #dddd;
+}
+.transfers-btn-container button{
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    background-color: #3795BD;
+    color: #fff;
+    font-weight: 600;
+}

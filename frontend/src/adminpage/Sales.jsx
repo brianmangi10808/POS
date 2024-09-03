@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ViewIcon } from '@chakra-ui/icons'
+
+
 import Modal from './Modal'; 
 
 import './sales.css';
@@ -92,61 +95,67 @@ const Sales = () => {
     return (
         <div>
             <div className="search-filter-container">
-                <input 
-                    type="text" 
-                    placeholder="Search by Customer Name, Amount, or Product" 
-                    value={searchQuery} 
-                    onChange={handleSearch} 
-                />
-                <div className="filter-container">
-                    <input 
-                        type="date" 
-                        placeholder="Start Date" 
-                        value={startDate} 
-                        onChange={(e) => setStartDate(e.target.value)} 
-                    />
-                    <input 
-                        type="date" 
-                        placeholder="End Date" 
-                        value={endDate} 
-                        onChange={(e) => setEndDate(e.target.value)} 
-                    />
-                    <select 
-                        value={paymentMethod} 
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                    >
-                        <option value="">All Payment Methods</option>
-                        <option value="CASH">Cash</option>
-                        <option value="MPESA">M-Pesa</option>
-                        {/* Add more payment methods as needed */}
-                    </select>
-                </div>
-            </div>
+    <input 
+        type="text" 
+        className="search-input" 
+        placeholder="Search by Customer Name, Amount, or Product" 
+        value={searchQuery} 
+        onChange={handleSearch} 
+    />
+    <div className="filter-container">
+        <input 
+            type="date" 
+            className="date-input" 
+            placeholder="Start Date" 
+            value={startDate} 
+            onChange={(e) => setStartDate(e.target.value)} 
+        />
+        <input 
+            type="date" 
+            className="date-input" 
+            placeholder="End Date" 
+            value={endDate} 
+            onChange={(e) => setEndDate(e.target.value)} 
+        />
+        <select 
+            className="payment-select" 
+            value={paymentMethod} 
+            onChange={(e) => setPaymentMethod(e.target.value)}
+        >
+            <option value="">All Payment Methods</option>
+            <option value="CASH">Cash</option>
+            <option value="MPESA">M-Pesa</option>
+            {/* Add more payment methods as needed */}
+        </select>
+    </div>
+</div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Customer Name</th>
-                        <th>Amount</th>
-                        <th>Product Name</th>
-                        <th>Quantity</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {Array.isArray(filteredTransactions) && filteredTransactions.map(transaction => (
-                        <tr key={transaction.transaction_id}>
-                            <td>{transaction.customer_name}</td>
-                            <td>{transaction.total_amount}</td>
-                            <td>{transaction.product_name}</td>
-                            <td>{transaction.quantity}</td>
-                            <td>
-                                <button onClick={() => handleViewClick(transaction)}>View</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <table className="transaction-table">
+    <thead>
+        <tr>
+            <th>Customer Name</th>
+            <th>Amount</th>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {Array.isArray(filteredTransactions) && filteredTransactions.map(transaction => (
+            <tr key={transaction.transaction_id}>
+                <td>{transaction.customer_name}</td>
+                <td>${transaction.total_amount.toFixed(2)}</td>
+                <td>{transaction.product_name}</td>
+                <td>{transaction.quantity}</td>
+                <td>
+                    <button className="view-button" onClick={() => handleViewClick(transaction)}>
+                        <ViewIcon />
+                    </button>
+                </td>
+            </tr>
+        ))}
+    </tbody>
+</table>
 
             {isModalOpen && (
                 <Modal onClose={closeModal}>
