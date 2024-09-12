@@ -38,35 +38,31 @@ function Transfers() {
         <p>{error}</p>
       ) : (
         <div className="details-table">
-          <h2>Product Details</h2>
-          <table>
-            <thead>
-              <tr>
-                <th style={{border: '1px solid black', padding:'10px'}} >Product ID</th>
-                <th style={{border: '1px solid black', padding:'10px'}}>Branch ID</th>
-                <th style={{border: '1px solid black', padding:'10px'}}>Detail Type</th>
-                <th style={{border: '1px solid black', padding:'10px'}}>Detail Description</th>
-                <th style={{border: '1px solid black', padding:'10px'}}>Detail Date</th>
-                
+        <h2 className="details-title">Product Details</h2>
+        <table className="details-table-content">
+          <thead>
+            <tr>
+              <th>Product ID</th>
+              <th>Branch ID</th>
+              <th>Detail Type</th>
+              <th>Detail Description</th>
+              <th>Detail Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {details.map(detail => (
+              <tr key={detail.id}>
+                <td>{detail.product_name}</td>
+                <td>{detail.branch_name}</td>
+                <td>{detail.detail_type}</td>
+                <td>{detail.detail_description}</td>
+                <td>{new Date(detail.detail_date).toLocaleDateString()}</td>
               </tr>
-            </thead>
-         
-            <tbody>
-  {details.map(detail => (
-    <tr key={detail.id}>
-      <td style={{border: '1px solid black', padding:'8px'}}>{detail.product_name}</td>
-      <td style={{border: '1px solid black', padding:'8px'}}>{detail.branch_name}</td>
-      <td style={{border: '1px solid black', padding:'8px'}}>{detail.detail_type}</td>
-      <td style={{border: '1px solid black', padding:'8px'}}>{detail.detail_description}</td>
-      <td style={{border: '1px solid black', padding:'8px'}}>{new Date(detail.detail_date).toLocaleDateString()}</td>
-     
-    </tr>
-  ))}
-</tbody>
-
-           
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
       )}
     </div>
   );

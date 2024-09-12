@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
+
 import { NavLink } from 'react-router-dom';
 import axios from 'axios';
 import './Movement.css';

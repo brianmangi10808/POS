@@ -1,4 +1,5 @@
 import React from 'react';
+import './App.css';
 import { Route, Routes,Navigate } from 'react-router-dom';
 import Login from './signup/Login';
 import Home from './homepage/Home';
@@ -23,14 +24,22 @@ import Orders from './stock/Orders';
 import Returns from './stock/Returns';
 import Transfers from './stock/Transfers';
 import Movement from './stock/Movement';
+import Createuser from './adminpage/Createuser';
 
 function App() {
+
+
+  
   return (
-    <UserProvider>
+    <div className="app-container">
+          <UserProvider>
       <ToastContainer />
       <Routes>
         <Route path='/' element={<Login />} />
+        <Route path='/checkout' element={<Checkout />} />
         <Route path='/register' element={<Register />} />
+        
+        <Route path='/createuser' element={<Createuser />} />
         <Route path='movement' element={<Movement />} />
        
         <Route path='/home' element={<Home />} >
@@ -62,6 +71,7 @@ function App() {
         </Route>
       </Routes>
     </UserProvider>
+    </div>
   );
 }
 

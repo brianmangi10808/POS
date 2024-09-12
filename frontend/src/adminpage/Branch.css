@@ -1,117 +1,156 @@
+/* Branch.css */
+
 .branch-form {
-    background-color: #f9f9f9;
+    max-width: 600px;
+    margin: 0 auto;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    margin: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
 }
+
+.branch-input {
+    margin-bottom: 15px;
+}
+
 .branch-input label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     font-weight: bold;
-    color: #333;
+    color: #333333;
 }
 
 .branch-input input {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #cccccc;
     border-radius: 4px;
     font-size: 16px;
-    color: #333;
-    margin-bottom: 20px;
-    transition: border-color 0.3s ease;
+    box-sizing: border-box;
 }
 
-.branch-input input:focus {
-    border-color: #007bff; /* Primary color */
-    outline: none;
-}
-button[type="submit"] {
+.branch-form button {
     width: 100%;
-    padding: 12px;
-    background-color: #007bff; /* Primary color */
+    padding: 10px;
     border: none;
     border-radius: 4px;
-    color: #fff;
-    font-size: 18px;
-    font-weight: bold;
+    background-color: #007bff;
+    color: white;
+    font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
 }
 
-button[type="submit"]:hover {
-    background-color: #0056b3; /* Darker shade of primary color */
+.branch-form button:hover {
+    background-color: #0056b3;
 }
+
 .Branch-list {
     margin-top: 30px;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 }
+
 .Branch-list ul {
-    list-style-type: none;
+    list-style: none;
     padding: 0;
-    margin: 0;
 }
 
 .Branch-list li {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid #eee;
-    transition: background-color 0.3s ease;
-}
-
-.Branch-list li:hover {
-    background-color: #f1f1f1;
+    padding: 10px;
+    border-bottom: 1px solid #eeeeee;
 }
 
 .branch-button button {
-    background: none;
+    margin-left: 10px;
     border: none;
+    background: transparent;
     cursor: pointer;
-    padding: 0;
-}
-.branch-button button svg {
-    fill: #007bff; /* Primary color */
-    transition: fill 0.3s ease;
 }
 
-.branch-button button:hover svg {
-    fill: #0056b3; /* Darker shade of primary color */
+.branch-button button:hover {
+    opacity: 0.8;
 }
+
+h2 {
+    margin-top: 30px;
+    font-size: 24px;
+    color: #333333;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+}
+
+.filters {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+.filter-create{
+    padding: 10px;
+    background-color: #0056b3;
+    color: #dddddd;
+    font-size: 18px;
+    border-radius: 7px;
+    font-weight: 500;
+    display: flex;
+    margin: auto;
+    border: none;
+}
+.filter-input {
+    margin-bottom: 10px;
+}
+
+.filter-input label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333333;
+}
+
+.filter-input input {
+    width: 30%;
+    padding: 10px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+.filter-btn{
+    border: none;
+
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table, th, td {
+    border: 1px solid #dddddd;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
 @media (max-width: 768px) {
-    .branch-form, .Branch-list {
+    .branch-form {
         padding: 15px;
-        box-shadow: none;
     }
 
     .branch-input input {
         font-size: 14px;
-        padding: 8px;
     }
 
-    button[type="submit"] {
-        padding: 10px;
-        font-size: 16px;
+    .branch-form button {
+        font-size: 14px;
     }
 
-    .Branch-list li {
-        flex-direction: column;
-        align-items: flex-start;
+    table {
+        font-size: 14px;
     }
-
-    .Branch-list li div {
-        margin-bottom: 10px;
-    }
-}
-.branch-form p {
-    color: #ff4d4d; /* Red color for errors */
-    font-weight: bold;
-    margin-top: -15px;
-    margin-bottom: 15px;
 }

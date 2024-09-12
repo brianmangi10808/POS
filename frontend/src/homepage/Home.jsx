@@ -8,6 +8,7 @@ import { useReactToPrint } from 'react-to-print';
 import Receipt from './Receipt';
 import { v4 as uuidv4 } from 'uuid';
 
+
 const Home = () => {
   const { username } = useContext(UserContext);
   const [categories, setCategories] = useState([]);
@@ -251,6 +252,8 @@ const Home = () => {
             ))}
           </ul>
         </div>
+     
+     
         <div className="product-list">
   {error && <p className="error">{error}</p>}
   {activeCategory === null ? (

@@ -17,6 +17,8 @@ const Sales = () => {
     const [selectedTransaction, setSelectedTransaction] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    
+
     // Function to fetch transactions
     const fetchTransactions = async () => {
         try {
@@ -141,20 +143,25 @@ const Sales = () => {
         </tr>
     </thead>
     <tbody>
-        {Array.isArray(filteredTransactions) && filteredTransactions.map(transaction => (
-            <tr key={transaction.transaction_id}>
-                <td>{transaction.customer_name}</td>
-                <td>${transaction.total_amount.toFixed(2)}</td>
-                <td>{transaction.product_name}</td>
-                <td>{transaction.quantity}</td>
-                <td>
-                    <button className="view-button" onClick={() => handleViewClick(transaction)}>
-                        <ViewIcon />
-                    </button>
-                </td>
-            </tr>
-        ))}
-    </tbody>
+    {Array.isArray(filteredTransactions) && filteredTransactions.map(transaction => (
+        <tr key={transaction.transaction_id}>
+            <td>{transaction.customer_name}</td>
+            <td>
+                {typeof transaction.total_amount === 'number' 
+                    ? `$${transaction.total_amount.toFixed(2)}` 
+                    : `$${parseFloat(transaction.total_amount).toFixed(2)}`}
+            </td>
+            <td>{transaction.product_name}</td>
+            <td>{transaction.quantity}</td>
+            <td>
+                <button className="view-button" onClick={() => handleViewClick(transaction)}>
+                    <ViewIcon />
+                </button>
+            </td>
+        </tr>
+    ))}
+</tbody>
+]\
 </table>
 
             {isModalOpen && (
