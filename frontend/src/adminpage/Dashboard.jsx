@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BsCreditCard } from "react-icons/bs";
 import { IoReceiptOutline } from "react-icons/io5";
 import axios from 'axios';
-import { Doughnut } from 'react-chartjs-2';
+import { Doughnut, Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import './Dashboard.css';
 
@@ -38,12 +38,154 @@ const Dashboard = () => {
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [{
-      label: 'Total Sales',
+      label: '',
       data: [],
       backgroundColor: [],
       hoverBackgroundColor: [],
     }],
   });
+
+  const [barChartData, setBarChartData] = useState({
+    labels: [],
+    datasets: [{
+      label: 'Total Amount Sold',
+      data: [],
+      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      borderColor: 'rgba(75, 192, 192, 1)',
+      borderWidth: 3,
+    }],
+  });
+
+  const [branchChartData, setBranchChartData] = useState({
+    labels: [],
+    datasets: [{
+      label: 'Total Amount by Branch',
+      data: [],
+      backgroundColor: [],
+      borderColor: [],
+      borderWidth: 1,
+    }],
+  });
+
+
+  const [dataType, setDataType] = useState('transactions'); // 'transactions' or 'amount'
+  const [customerData, setCustomerData] = useState({}); // Store aggregated customer data
+
+  // Function to generate distinct colors
+  const generateDistinctColors = (numColors) => {
+    const colors = [];
+    const colorIncrement = 360 / numColors; // Divide the hue evenly across 360 degrees
+
+    for (let i = 0; i < numColors; i++) {
+      const hue = i * colorIncrement; // Ensure hues are well-spaced
+      const color = `hsl(${hue}, 70%, 50%)`; // Use 70% saturation and 50% lightness for distinct colors
+      colors.push(color);
+    }
+
+    return colors;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch transaction details
+        const response = await axios.get('http://localhost:3000/api/transaction-details');
+        const transactions = response.data;
+
+        // Aggregate data by customer
+        const customerData = {};
+
+        transactions.forEach(transaction => {
+          const { customer_name, total_amount } = transaction;
+
+          // Skip empty customer names
+          if (customer_name) {
+            if (!customerData[customer_name]) {
+              customerData[customer_name] = { totalTransactions: 0, totalAmount: 0 };
+            }
+            customerData[customer_name].totalTransactions += 1;
+            customerData[customer_name].totalAmount += parseFloat(total_amount);
+          }
+        });
+
+        setCustomerData(customerData); // Save the aggregated data
+
+        // Aggregate data by day of the week
+        const amountsByDay = transactions.reduce((acc, transaction) => {
+          const date = new Date(transaction.transaction_date);
+          const day = date.toLocaleDateString('en-US', { weekday: 'long' });
+          if (!acc[day]) acc[day] = 0;
+          acc[day] += parseFloat(transaction.total_amount);
+          return acc;
+        }, {});
+
+        // Prepare data for the bar chart
+        const days = Object.keys(amountsByDay);
+        const amounts = Object.values(amountsByDay);
+
+        setBarChartData({
+          labels: days,
+          datasets: [
+            {
+              label: 'Total Amount Sold',
+              data: amounts,
+              backgroundColor: (context) => {
+                // Create gradient for each bar
+                const canvas = context.chart.canvas;
+                const ctx = canvas.getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, 'rgba(75, 192, 192, 0.6)'); // Start color
+                gradient.addColorStop(1, 'rgba(75, 192, 192, 0.2)'); // End color
+                return gradient;
+              },
+              borderColor: 'rgba(75, 192, 192, 1)', // Border color for the bars
+              borderWidth: 3, // Border width
+              barThickness: 50, // Thickness of bars
+              borderRadius: 5, // Rounded corners for bars
+            },
+          ],
+        });
+        
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Handle filter change
+  const handleDataTypeChange = (event) => {
+    setDataType(event.target.value);
+  };
+
+  useEffect(() => {
+    // Prepare data for the chart based on selected filter (transactions or amount)
+    const customerNames = Object.keys(customerData);
+    const chartValues = customerNames.map(name =>
+      dataType === 'transactions'
+        ? customerData[name].totalTransactions
+        : customerData[name].totalAmount
+    );
+
+    const label = dataType === 'transactions' ? 'Total Transactions' : 'Total Amount';
+
+    // Generate distinct colors
+    const colors = generateDistinctColors(customerNames.length);
+
+    // Update chart data
+    setChartData({
+      labels: customerNames,
+      datasets: [
+        {
+          label,
+          data: chartValues,
+          backgroundColor: colors, // Distinct background colors
+          hoverBackgroundColor: colors.map(color => color), // Same colors for hover
+        },
+      ],
+    });
+  }, [dataType, customerData]);
 
   useEffect(() => {
     // Fetch transactions data from API
@@ -81,67 +223,7 @@ const Dashboard = () => {
   const handleDateChange = (event) => {
     setSelectedDate(event.target.value);
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch transaction details
-        const transactionResponse = await axios.get('http://localhost:3000/api/transaction-details');
-        const transactions = transactionResponse.data;
-
-        // Fetch branch details
-        const branchResponse = await axios.get('http://localhost:3000/api/branches');
-        const branches = branchResponse.data;
-
-        // Initialize an object to store total amounts per branch
-        const salesByBranch = {};
-
-        // Aggregate the total amount for each branch
-        transactions.forEach(transaction => {
-          const branch = branches.find(branch => branch.id === transaction.branch_id);
-          if (branch) {
-            if (!salesByBranch[branch.name]) {
-              salesByBranch[branch.name] = 0;
-            }
-            salesByBranch[branch.name] += parseFloat(transaction.total_amount);
-          }
-        });
-
-        // Prepare data for the chart
-        const branchNames = Object.keys(salesByBranch);
-        const branchSales = Object.values(salesByBranch);
-
-        // Set the chart data
-        setChartData({
-          labels: branchNames,
-          datasets: [
-            {
-              label: 'Total Sales',
-              data: branchSales,
-              backgroundColor: [
-                '#FF6384',
-                '#36A2EB',
-                '#FFCE56',
-                '#4BC0C0',
-                '#9966FF',
-              ],
-              hoverBackgroundColor: [
-                '#FF6384',
-                '#36A2EB',
-                '#FFCE56',
-                '#4BC0C0',
-                '#9966FF',
-              ],
-            },
-          ],
-        });
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  }, []);
+  
 
   return (
     <ErrorBoundary>
@@ -168,14 +250,83 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="charts-container">
-          <div className="chart-branch">
+          <div className="chart-users">
+            <div>
+              <select id="data-type-select" value={dataType} onChange={handleDataTypeChange}>
+                <option value="transactions">Total Transactions</option>
+                <option value="amount">Total Amount</option>
+              </select>
+            </div>
             <div className="chart-container">
-              <h2 className="chart-title">Total Sales by Branch</h2>
-              <Doughnut data={chartData} />
+              <Doughnut
+                data={chartData}
+                options={{
+                  plugins: {
+                    legend: {
+                      display: true,
+                      position: 'bottom', // Change to 'bottom' for horizontal alignment
+                      align: 'start', // Start alignment for horizontal legend
+                      labels: {
+                        usePointStyle: true, // Use point style for better horizontal display
+                        font: {
+                          size: 17, // Set the font size for legend labels
+                        },
+                      },
+                    },
+                  },
+                }}
+              />
             </div>
           </div>
-          <div className="chart-users"></div>
-          <div className="chart-sales"></div>
+          <div className="chart-branch"> {/* Bar chart should be here */}
+            <Bar
+              data={barChartData}
+              options={{
+                animation: {
+                  duration: 1000, // Duration of animations
+                  easing: 'easeOutBounce', // Easing function for animation
+                },
+                responsive: true, // Make the chart responsive
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: 'top', // Position of the legend
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: (tooltipItem) => {
+                        return `${tooltipItem.dataset.label}: $${tooltipItem.raw.toFixed(2)}`;
+                      },
+                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Tooltip background color
+                    titleFont: {
+                      size: 17, // Font size for tooltip title
+                    },
+                    bodyFont: {
+                      size: 17, // Font size for tooltip body
+                    },
+                  },
+                },
+              }}
+              
+            />
+          </div>
+          <div className="branch-data">
+          <Bar
+              data={branchChartData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { display: true, position: 'top' },
+                },
+                scales: {
+                  x: { beginAtZero: true },
+                  y: { beginAtZero: true },
+                },
+              }}
+            />
+
+          </div>
         </div>
       </div>
     </ErrorBoundary>

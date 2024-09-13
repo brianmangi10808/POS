@@ -6,6 +6,7 @@ import './Check.css';
 import profile from '../assets/profile.jpg';
 import { v4 as uuidv4 } from 'uuid';
 import { useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 const Checkout = () => {
   const [activeCategory, setActiveCategory] = useState(null);
@@ -229,6 +230,10 @@ const Checkout = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+
+        </div>
+        <div className="logout">
+        <NavLink to='/'><button className="log-out-nav">LOG OUT</button></NavLink>
         </div>
       </div>
 
@@ -247,17 +252,24 @@ const Checkout = () => {
         <div className="product-list">
           {error && <p className="error">{error}</p>}
           {filteredProducts.map((product) => (
-            <div className="product-card" key={product.id}>
-              <img
-                src={imageUrls[product.id] || profile}
-                alt={product.name}
-                className="product-image"
-              />
-              <h3>{product.name}</h3>
-              <p>{product.description}</p>
-              <p>Price: KSH {Number(product.price).toFixed(2)}</p>
-              <button onClick={() => handleAddToCart(product)}>Add to Cart</button>
-            </div>
+         <div className="product-card" key={product.id}>
+         <button 
+           onClick={() => handleAddToCart(product)} 
+           className="product-card-button"
+           style={{ all: 'unset', cursor: 'pointer', width: '100%', height: '100%' }}
+         >
+           <img
+             src={imageUrls[product.id] || profile}
+             alt={product.name}
+             className="product-image"
+           />
+           <h3>{product.name}</h3>
+           <p>{product.description}</p>
+           <p>Price: KSH {Number(product.price).toFixed(2)}</p>
+           <p style={{ color: 'green', fontSize: '16px', fontWeight: '500' }}>ADD</p>
+         </button>
+       </div>
+       
           ))}
         </div>
 

@@ -41,7 +41,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-    background-color: gray;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+
     border-radius:15px ;
 }
 .paid-amount{
@@ -52,7 +55,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-    background-color: gray;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
     border-radius:15px ;
     
 }
@@ -63,7 +68,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-    background-color: gray;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
     border-radius:15px ;
 }
 .charts-container{
@@ -74,28 +81,66 @@
     margin: auto;
 
 }
-.chart-branch{
-    width: 30%;
-    border: 1px solid #111315;
+
+
+.chart-users {
     margin-top: 25px;
-    border-radius: 10px;
-    height: 300px;
-}
-.chart-users{
-    margin-top: 25px;
-    width: 30%;
-    border: 1px solid #111315;
-    border-radius: 10px;
-    height: 300px;  
-}
+    width: 100%;
+    max-width: 500px; /* Adjust max-width to fit your layout */
+    border: 1px solid #ddd; /* Lighter border color for a modern look */
+    border-radius: 12px; /* Slightly larger border-radius for a modern feel */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    overflow: hidden; /* Ensure children elements don’t overflow */
+    background-color: #fff; /* White background for cleanliness */
+  }
+  
+  .chart-users > div {
+    padding: 20px; /* Add padding to create space inside */
+  }
+  
+  #data-type-select {
+    width: 100%; /* Make the select element full-width */
+    padding: 10px; /* Add padding for better touch area */
+    border: 1px solid #ccc; /* Light border for the select */
+    border-radius: 5px; /* Rounded corners for the select */
+    background-color: #f9f9f9; /* Light background color */
+    font-size: 16px; /* Increase font size for readability */
+  }
+  
+  .chart-container {
+    margin-top: 20px; /* Add space between select and chart */
+  }
+  
 .chart-sales{
     margin-top: 25px;
-    border-radius: 10px;
-    width: 30%;
-    border: 1px solid #111315;
-    height: 300px; 
+    width: 100%;
+    max-width: 500px; /* Adjust max-width to fit your layout */
+    border: 1px solid #ddd; /* Lighter border color for a modern look */
+    border-radius: 12px; /* Slightly larger border-radius for a modern feel */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    overflow: hidden; /* Ensure children elements don’t overflow */
+    background-color: #fff; /* White background for cleanliness */
 }
-
+.chart-branch{
+    margin-top: 25px;
+    width: 100%;
+    max-width: 500px; /* Adjust max-width to fit your layout */
+    border: 1px solid #ddd; /* Lighter border color for a modern look */
+    border-radius: 12px; /* Slightly larger border-radius for a modern feel */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    overflow: hidden; /* Ensure children elements don’t overflow */
+    background-color: #fff; /* White background for cleanliness */
+}
+.branch-data{
+    margin-top: 25px;
+    width: 100%;
+    max-width: 500px; /* Adjust max-width to fit your layout */
+    border: 1px solid #ddd; /* Lighter border color for a modern look */
+    border-radius: 12px; /* Slightly larger border-radius for a modern feel */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    overflow: hidden; /* Ensure children elements don’t overflow */
+    background-color: #fff; /* White background for cleanliness */
+}
 /* SalesByBranchDonutChart.css */
 
 .chart-container {

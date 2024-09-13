@@ -33,6 +33,35 @@ router.post('/signup', async (req, res) => {
 });
 
 // User Login
+// router.post('/login', async (req, res) => {
+//     const { email, password } = req.body;
+
+//     if (!email || !password) {
+//         return res.status(400).json({ error: 'Email and password are required' });
+//     }
+
+//     const query = 'SELECT * FROM users WHERE email = ?';
+//     db.query(query, [email], async (err, results) => {
+//         if (err) {
+//             console.error('Database error:', err);
+//             return res.status(500).json({ error: 'Database error' });
+//         }
+
+//         if (results.length === 0) {
+//             return res.status(401).json({ error: 'Invalid email or password' });
+//         }
+
+//         const user = results[0];
+//         const passwordMatch = await bcrypt.compare(password, user.password);
+
+//         if (!passwordMatch) {
+//             return res.status(401).json({ error: 'Invalid email or password' });
+//         }
+
+//         res.status(200).json({ message: 'Login successful', user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+//     });
+// });
+// User Login
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -58,9 +87,43 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        res.status(200).json({ message: 'Login successful', user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+        // Fetch products for the branch assigned to the user
+        const branchId = user.branch_id; // assuming the branch ID is stored in the user record
+
+        if (!branchId) {
+            return res.status(403).json({ error: 'User is not assigned to any branch' });
+        }
+
+        const productsQuery = `
+            SELECT p.id, p.name, p.description, p.price, bp.quantity, c.name as category_name
+            FROM branch_products bp
+            INNER JOIN products p ON bp.product_id = p.id
+            INNER JOIN categories c ON p.category_id = c.id
+            WHERE bp.branch_id = ?
+
+        `;
+
+        db.query(productsQuery, [branchId], (productErr, products) => {
+            if (productErr) {
+                console.error('Database error:', productErr);
+                return res.status(500).json({ error: 'Database error' });
+            }
+
+            res.status(200).json({
+                message: 'Login successful',
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    branch_id: user.branch_id,
+                },
+                products: products // Return products from the user's branch
+            });
+        });
     });
 });
+
 
 // Get Signup Data
 router.get('/signup-data', (req, res) => {
@@ -136,5 +199,35 @@ router.get('/users-with-branches', (req, res) => {
         res.status(200).json(results);
     });
 });
+
+router.get('/category-product', async (req, res) => {
+    const branchId = req.query.branch_id;
+  
+    if (!branchId) {
+      return res.status(400).json({ error: 'Branch ID is required' });
+    }
+  
+    try {
+      const productsQuery = `
+        SELECT p.id, p.name, p.sku, p.description, p.price, bp.quantity, c.name as category_name
+        FROM branch_products bp
+        INNER JOIN products p ON bp.product_id = p.id
+        INNER JOIN categories c ON p.category_id = c.id
+        WHERE bp.branch_id = ?`;
+  
+      db.query(productsQuery, [branchId], (err, results) => {
+        if (err) {
+          console.error('Database error:', err);
+          return res.status(500).json({ error: 'Database error' });
+        }
+        res.status(200).json({ products: results });
+      });
+    } catch (error) {
+      console.error('Server error:', error);
+      res.status(500).json({ error: 'Server error' });
+    }
+});
+
+  
 
 module.exports =router;

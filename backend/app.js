@@ -16,6 +16,7 @@ const stock= require('./routes/stock');
 const sales= require('./routes/sales');
 const transactionRouter = require('./routes/transactionRouter');
 const transfer= require('./routes/transfer');
+const dashboard= require('./routes/dashboard');
 
 
 //Middleware for parsing JSON data
@@ -35,6 +36,7 @@ app.use('/api', users);
 app.use('/api/', payment);
 app.use('/api/', category);
 app.use('/api/', product);
+app.use('/api/', dashboard);
 app.use('/api/', transfer);
 app.use('/api/', branches);
 app.use('/api/', stock);

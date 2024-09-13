@@ -3,45 +3,7 @@ const router = express.Router();
 const db = require('../db');
 
 
-router.post('/allocate-stock', async (req, res) => {
-    const { product_id, category_id, allocations } = req.body;
 
-    try {
-        // Log request body for debugging
-        console.log('Request body:', req.body);
-
-        // Process each allocation
-        for (const allocation of allocations) {
-            const { branch_id, quantity } = allocation;
-
-            if (!branch_id || !quantity) {
-                throw new Error('Missing branch_id or quantity in allocations.');
-            }
-
-            await db.query(`
-                INSERT INTO branch_products (branch_id, product_id, quantity, category_id)
-                VALUES (?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity);
-            `, [branch_id, product_id, quantity, category_id]);
-        }
-
-        res.status(200).send({ success: true });
-    } catch (error) {
-        console.error('Error allocating stock:', error);
-        res.status(500).send({ success: false, error: 'Internal Server Error' });
-    }
-});
-
-
-router.get('/allocate-stock', (req, res) => {
-    db.query('SELECT * FROM branch_products', (error, results) => {
-        if (error) {
-            console.error('Error fetching stock data:', error); // Log the error
-            return res.status(500).send({ success: false, error: 'Internal Server Error' });
-        }
-        res.status(200).json(results);
-    });
-});
 
 
 router.get('/allocated-stocks', (req, res) => {
@@ -55,7 +17,7 @@ router.get('/allocated-stocks', (req, res) => {
             bp.category_id,
             c.name AS category_name
         FROM
-            branch_products bp
+            branch_products bpnpm s
         JOIN
             branches b ON bp.branch_id = b.id
         JOIN
@@ -72,7 +34,44 @@ router.get('/allocated-stocks', (req, res) => {
         res.status(200).json(results);
     });
 });
+router.get('/aggregated-quantities', (req, res) => {
+    const query = `
+        SELECT 
+    b.name AS branch_name,
+    p.name AS product_name,
+    SUM(
+        CAST(
+            TRIM(
+                LEADING ' ' FROM
+                SUBSTRING_INDEX(
+                    SUBSTRING_INDEX(d.detail_description, ' ', -2), 
+                    ' ', 1
+                )
+            ) AS UNSIGNED
+        )
+    ) AS total_quantity
+FROM 
+    details d
+JOIN 
+    branches b ON d.branch_id = b.id
+JOIN
+    products p ON d.product_id = p.id
+GROUP BY 
+    b.name, p.name
+ORDER BY 
+    b.name, p.name;
 
+    `;
+  
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Database query error:', err);
+            return res.status(500).json({ error: 'Database query error' });
+        }
+        res.json(results);
+    });
+  });
+  
 
 
 

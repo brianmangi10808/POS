@@ -194,7 +194,30 @@ router.get('/products', (req, res) => {
         res.status(200).json(results);
     });
 });
-
+// router.get('/products', (req, res) => {
+//     const { category_id, branch_id } = req.query;
+  
+//     if (!category_id || !branch_id) {
+//       return res.status(400).json({ error: 'Category ID and Branch ID are required' });
+//     }
+  
+//     const query = `
+//       SELECT p.id, p.name, p.description, p.price, p.category_id, bp.quantity
+//       FROM products p
+//       INNER JOIN branch_products bp ON p.id = bp.product_id
+//       WHERE p.category_id = ? AND bp.branch_id = ?
+//     `;
+  
+//     db.query(query, [category_id, branch_id], (err, results) => {
+//       if (err) {
+//         console.error('Database error:', err);
+//         return res.status(500).json({ error: 'Database error' });
+//       }
+  
+//       res.status(200).json(results);
+//     });
+//   });
+  
 // Get Products by Category
 router.get('/categories/:category_id/products', (req, res) => {
     const { category_id } = req.params;
@@ -373,6 +396,24 @@ router.post('/products/transfer', (req, res) => {
 });
 
 
+// Get Products by Branch
+router.get('/branches/:branch_id/products', (req, res) => {
+    const { branch_id } = req.params;
+
+    const query = `
+        SELECT p.id, p.name, p.description, p.price, bp.quantity
+        FROM branch_products bp
+        INNER JOIN products p ON bp.product_id = p.id
+        WHERE bp.branch_id = ?
+    `;
+    db.query(query, [branch_id], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.status(200).json(results);
+    });
+});
 
 
 module.exports = router;
