@@ -1,0 +1,218 @@
+
+
+.dasboard-container{
+ display: flex;
+ flex-direction: column;
+
+}
+.name-filter-date{
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    justify-content: space-between;
+    width: 99%;
+}
+.name-filter-date input{
+    padding: 7px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    color: blue;
+}
+.large-icon{
+    font-size: 20px;
+    background-color: #ffff;
+    padding: 10px;
+   
+    border-radius: 45%;
+    color: #000;
+}
+.total-day-container{
+    display: flex;
+    width: 90%;
+    justify-content: space-evenly;
+    margin: auto;
+    
+}
+.total-day{
+    width: 30%;
+    padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+
+    border-radius:15px ;
+}
+.paid-amount{
+  height: auto;
+    width: 30%;
+    padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    border-radius:15px ;
+    
+}
+.total-quantity{
+    width: 30%;
+    padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    border-radius:15px ;
+}
+.charts-container{
+   
+    display: flex;
+    width: 100%;
+    justify-content: space-evenly;
+    margin: auto;
+
+}
+
+
+.chart-users {
+    margin-top: 25px;
+    width: 100%;
+    max-width: 500px; /* Adjust max-width to fit your layout */
+    border: 1px solid #ddd; /* Lighter border color for a modern look */
+    border-radius: 12px; /* Slightly larger border-radius for a modern feel */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    overflow: hidden; /* Ensure children elements don’t overflow */
+    background-color: #fff; /* White background for cleanliness */
+  }
+  
+  .chart-users > div {
+    padding: 20px; /* Add padding to create space inside */
+  }
+  
+  #data-type-select {
+    width: 100%; /* Make the select element full-width */
+    padding: 10px; /* Add padding for better touch area */
+    border: 1px solid #ccc; /* Light border for the select */
+    border-radius: 5px; /* Rounded corners for the select */
+    background-color: #f9f9f9; /* Light background color */
+    font-size: 16px; /* Increase font size for readability */
+  }
+  
+  .chart-container {
+    margin-top: 20px; /* Add space between select and chart */
+  }
+  
+.chart-sales{
+    margin-top: 25px;
+    width: 100%;
+    max-width: 500px; /* Adjust max-width to fit your layout */
+    border: 1px solid #ddd; /* Lighter border color for a modern look */
+    border-radius: 12px; /* Slightly larger border-radius for a modern feel */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    overflow: hidden; /* Ensure children elements don’t overflow */
+    background-color: #fff; /* White background for cleanliness */
+}
+.chart-branch{
+    margin-top: 25px;
+    width: 100%;
+    max-width: 500px; /* Adjust max-width to fit your layout */
+    border: 1px solid #ddd; /* Lighter border color for a modern look */
+    border-radius: 12px; /* Slightly larger border-radius for a modern feel */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    overflow: hidden; /* Ensure children elements don’t overflow */
+    background-color: #fff; /* White background for cleanliness */
+}
+.branch-data{
+    margin-top: 25px;
+    width: 100%;
+    max-width: 500px; /* Adjust max-width to fit your layout */
+    border: 1px solid #ddd; /* Lighter border color for a modern look */
+    border-radius: 12px; /* Slightly larger border-radius for a modern feel */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    overflow: hidden; /* Ensure children elements don’t overflow */
+    background-color: #fff; /* White background for cleanliness */
+}
+/* SalesByBranchDonutChart.css */
+
+.chart-container {
+    width: 50%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .chart-title {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+
+@media (max-width: 768px) {
+    .total-day-container{
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+  
+        
+    }
+    .total-day{
+    width: 70%;
+    }
+    .paid-amount{
+        width: 70%;
+    }
+    .total-quantity{
+      width: 100%;
+        
+    }
+    .charts-container{
+   
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        
+     
+    }
+    .chart-branch{
+        width: 90%;
+        margin: auto;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #111315;
+        margin-top: 15px;
+        height: 350px;
+    }
+    .chart-users{
+        margin-top: 15px;
+        margin: auto;
+        margin-bottom: 15px;
+        width: 90%;
+        border: 1px solid #111315;
+        border-radius: 10px;
+        
+        height: 350px;  
+    }
+    .chart-sales{
+        margin-top: 15px;
+        margin-bottom: 15px;
+        margin: auto;
+        border-radius: 10px;
+        width: 90%;
+        border: 1px solid #111315;
+        height: 350px; 
+    }
+}

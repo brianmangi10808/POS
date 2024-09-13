@@ -1,0 +1,150 @@
+.management-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.button-group button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button-group button.active {
+    background-color: #0056b3;
+}
+
+.button-group button:hover {
+    background-color: #0056b3;
+}
+
+.page-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.error-message {
+    color: red;
+    margin-top: 10px;
+}
+
+.btn-submit {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-submit:disabled {
+    background-color: #6c757d;
+}
+
+.btn-submit:hover:enabled {
+    background-color: #218838;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.item-list {
+    list-style: none;
+    padding: 0;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.item-details {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.item-name,
+.item-sku,
+.item-quantity,
+.item-category {
+    font-weight: 500;
+    color: #333;
+}
+
+.item-number {
+    font-weight: 600;
+    color: #007bff;
+}
+
+.item-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.item-buttons button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: #007bff;
+    display: flex;
+    align-items: center;
+}
+
+.item-buttons .btn-text {
+    margin-left: 5px;
+}
+
+.no-items {
+    text-align: center;
+    color: #6c757d;
+    margin-top: 20px;
+}
+
+.category-section,
+.product-section {
+    margin-top: 20px;
+}

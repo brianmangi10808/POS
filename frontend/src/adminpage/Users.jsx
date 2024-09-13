@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
 import axios from 'axios';
 
 function Users() {
@@ -6,19 +7,29 @@ function Users() {
     const [branches, setBranches] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
     const [selectedBranch, setSelectedBranch] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Fetch users with branch details
+    // Fetch users and branches
     useEffect(() => {
-        axios.get('http://localhost:3000/api/users-with-branches')
-            .then(response => setUsers(response.data))
-            .catch(error => console.error('Error fetching users:', error));
-    }, []);
+        const fetchData = async () => {
+            try {
+                const [usersResponse, branchesResponse] = await Promise.all([
+                    axios.get('http://localhost:3000/api/users-with-branches'),
+                    axios.get('http://localhost:3000/api/branches')
+                ]);
+                console.log('Users:', usersResponse.data); // Debugging line
+                setUsers(usersResponse.data);
+                setBranches(branchesResponse.data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    // Fetch branches
-    useEffect(() => {
-        axios.get('http://localhost:3000/api/branches')
-            .then(response => setBranches(response.data))
-            .catch(error => console.error('Error fetching branches:', error));
+        fetchData();
     }, []);
 
     // Handle branch assignment
@@ -33,28 +44,62 @@ function Users() {
             .catch(error => alert(error.response.data.error));
     };
 
+    if (loading) return <p style={{ textAlign: 'center' }}>Loading...</p>;
+    if (error) return <p style={{ color: 'red', textAlign: 'center' }}>Error: {error}</p>;
+
     return (
         <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
             <h2>Assign Branch to User</h2>
             <div style={{ marginBottom: '20px' }}>
-            <select value={selectedUser} onChange={e => setSelectedUser(e.target.value)}>
+            <select
+    value={selectedUser}
+    onChange={e => setSelectedUser(e.target.value)}
+    style={{ marginRight: '10px', padding: '8px' }}
+>
     <option value="">Select User</option>
-    {Array.isArray(users) && users.map(user => (
-        <option key={user.id} value={user.id}>{user.name}</option>
-    ))}
+    {users.length > 0 ? (
+        users.map((user) => (
+            <option key={user.user_id} value={user.user_id}>
+                {user.user_name}
+            </option>
+        ))
+    ) : (
+        <option disabled>No users available</option>
+    )}
 </select>
 
 
 
-
-                <select value={selectedBranch} onChange={e => setSelectedBranch(e.target.value)}>
+                <select
+                    value={selectedBranch}
+                    onChange={e => setSelectedBranch(e.target.value)}
+                    style={{ marginRight: '10px', padding: '8px' }}
+                >
                     <option value="">Select Branch</option>
-                    {Array.isArray(branches) && branches.map(branch => (
-                        <option key={branch.id} value={branch.id}>{branch.name}</option>
-                    ))}
+                    {Array.isArray(branches) && branches.length > 0 ? (
+                        branches.map((branch, index) => (
+                            <option key={branch.id || index} value={branch.id}>
+                                {branch.name}
+                            </option>
+                        ))
+                    ) : (
+                        <option disabled>No branches available</option>
+                    )}
                 </select>
 
-                <button onClick={handleAssign}>Assign Branch</button>
+                <button
+                    onClick={handleAssign}
+                    style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    Assign Branch
+                </button>
             </div>
 
             <h2>Users List</h2>
@@ -71,26 +116,29 @@ function Users() {
                     </tr>
                 </thead>
                 <tbody>
-    {users.length > 0 ? (
-        users.map(user => (
-            <tr key={user.user_id}>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_id}</td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_name}</td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_email}</td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_role}</td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.branch_id || 'N/A'}</td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.branch_name || 'N/A'}</td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.branch_location || 'N/A'}</td>
-            </tr>
-        ))
-    ) : (
-        <tr>
-            <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>No users found</td>
-        </tr>
-    )}
-</tbody>
-
+                    {users.length > 0 ? (
+                        users.map((user, index) => (
+                            <tr key={user.user_id || index}>
+                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_id}</td>
+                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_name}</td>
+                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_email}</td>
+                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.user_role}</td>
+                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.branch_id || 'N/A'}</td>
+                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.branch_name || 'N/A'}</td>
+                                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{user.branch_location || 'N/A'}</td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>No users found</td>
+                        </tr>
+                    )}
+                </tbody>
             </table>
+
+            <div className="create-user">
+            <NavLink to='/createuser' >create user</NavLink>
+            </div>
         </div>
     );
 }
