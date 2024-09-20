@@ -4,6 +4,17 @@ const async = require('async');
 const db = require('../db');
 
 // Endpoint to update stock
+const stockThreshold = 9; // Admin-defined threshold for low stock, can be dynamic
+
+// Helper function to create a notification
+const createNotification = (productId, branchId, message, callback) => {
+    const notificationQuery = `
+        INSERT INTO notifications (product_id, branch_id, message) 
+        VALUES (?, ?, ?)
+    `;
+    db.query(notificationQuery, [productId, branchId, message], callback);
+};
+
 router.post('/update-stock', (req, res) => {
     const { items, totalAmount, branchId, customerName, paymentMethod } = req.body;
 
@@ -22,6 +33,7 @@ router.post('/update-stock', (req, res) => {
     }
 
     let remainingQuantities = [];
+    let lowStockNotifications = []; // To store low stock notifications
 
     db.beginTransaction((transactionErr) => {
         if (transactionErr) {
@@ -48,12 +60,11 @@ router.post('/update-stock', (req, res) => {
                 }
 
                 const availableQuantity = results[0].quantity;
+                const newQuantity = availableQuantity - quantity;
 
-                if (availableQuantity < quantity) {
+                if (newQuantity < 0) {
                     return callback(new Error(`Insufficient quantity available for product ID ${productId} in branch ${branchId}`));
                 }
-
-                const newQuantity = availableQuantity - quantity;
 
                 // Update the quantity in branch_products
                 const updateQuery = 'UPDATE branch_products SET quantity = ? WHERE product_id = ? AND branch_id = ?';
@@ -81,14 +92,61 @@ router.post('/update-stock', (req, res) => {
                             return callback(logErr);
                         }
 
-                        // Add the updated quantity to the array for response
-                        remainingQuantities.push({
-                            productId,
-                            remainingQuantity: newQuantity
-                        });
+                        // Query to get branch and product names
+                        const branchProductQuery = `
+                            SELECT 
+                                bp.quantity, 
+                                p.name AS product_name, 
+                                b.name AS branch_name
+                            FROM 
+                                branch_products bp
+                            JOIN 
+                                products p ON bp.product_id = p.id
+                            JOIN 
+                                branches b ON bp.branch_id = b.id
+                            WHERE 
+                                bp.product_id = ? AND bp.branch_id = ?
+                        `;
+                        db.query(branchProductQuery, [productId, branchId], (infoErr, infoResults) => {
+                            if (infoErr) {
+                                return callback(infoErr);
+                            }
+                            if (infoResults.length === 0) {
+                                return callback(new Error(`No branch/product info found for product ID ${productId} in branch ${branchId}`));
+                            }
 
-                        // Proceed to the next item
-                        callback(null);
+                            const info = infoResults[0];
+
+                            // Add the updated quantity and product/branch names to the array for response
+                            remainingQuantities.push({
+                                branchName: info.branch_name,
+                                productName: info.product_name,
+                                remainingQuantity: newQuantity
+                            });
+
+                            // Check if stock is below the threshold
+                            if (newQuantity <= stockThreshold) {
+                                const lowStockMessage = `Stock for product ${info.product_name} is low (Remaining: ${newQuantity}).`;
+                                
+                                // Create a low stock notification
+                                createNotification(productId, branchId, lowStockMessage, (notificationErr) => {
+                                    if (notificationErr) {
+                                        console.error('Error creating notification:', notificationErr);
+                                    } else {
+                                        console.log('Low stock notification created for product', productId);
+                                    }
+                                });
+
+                                // Add the notification to the response (optional)
+                                lowStockNotifications.push({
+                                    productId,
+                                    message: lowStockMessage
+                                });
+                            }
+
+                            // Proceed to the next item
+                            callback(null);
+                        });
                     });
                 });
             });
@@ -108,10 +166,11 @@ router.post('/update-stock', (req, res) => {
                     return db.rollback(() => res.status(500).json({ error: 'Transaction commit error' }));
                 }
 
-                // Return the updated stock quantities for each product
+                // Return the updated stock quantities and any low stock notifications
                 res.status(200).json({
                     message: 'Stock updated and transactions logged successfully for branch',
-                    remainingQuantities: remainingQuantities
+                    remainingQuantities: remainingQuantities,
+                    lowStockNotifications: lowStockNotifications // Optional: Send low stock notifications in the response
                 });
             });
         });

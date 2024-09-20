@@ -116,6 +116,18 @@
 .content.sidebar-open {
   margin-left: 0;
 }
+.notification {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 90%;
+  margin-bottom: 10px;
+  padding: 10px;
+ 
+}
+
+
+
 
 @media (max-width: 768px) {
   .sidebar {

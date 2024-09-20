@@ -259,4 +259,12 @@ height: 100vh;
   .modal button:hover {
     background-color: #0056b3;
   }
-  
+  .nav-return{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 90%;
+    color: #ffffff;
+    margin-bottom: 10px;
+    padding: 10px;
+  }

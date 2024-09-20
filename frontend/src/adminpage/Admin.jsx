@@ -8,6 +8,7 @@ import { RiCustomerService2Fill } from "react-icons/ri";
 import { FaUsers } from "react-icons/fa6";
 import { FcSalesPerformance } from "react-icons/fc";
 import { MdDashboardCustomize } from "react-icons/md";
+import { IoNotificationsSharp } from "react-icons/io5";
 
 import { UserContext } from '../signup/UserContext';
 import { NavLink, Outlet } from 'react-router-dom';
@@ -55,6 +56,7 @@ const Admin = () => {
             <li><NavLink to='/admin/customer' className="nav-item"> <RiCustomerService2Fill />  CUSTOMER</NavLink></li>
             <li><NavLink to='/admin/inventory' className="nav-item"><MdOutlineInventory /> STOCK</NavLink></li>
             <li><NavLink to='/admin/branchform' className="nav-item"> <LuStore /> STORES</NavLink></li>
+            <li><NavLink to='/admin/notification' className="nav-item notification"> <IoNotificationsSharp /> NOTIFICATIONS</NavLink></li>
         </ul>
     </nav>
     <div className="content">

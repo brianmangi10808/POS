@@ -12,16 +12,18 @@ import Sales from './adminpage/Sales';
 import Dashboard from './adminpage/Dashboard';
 import Product from './adminpage/Product';
 import Checkout from './homepage/Checkout';
+import Returns from './homepage/Returns';
 import BranchForm from './adminpage/BranchForm';
 import Inventory from './adminpage/Inventory';
 import Customer from './adminpage/Customer';
+import Notification from './adminpage/Notification';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Modal from './adminpage/Modal';
 import Receipt from './homepage/Receipt';
 import Orders from './stock/Orders';
-import Returns from './stock/Returns';
+
 import Transfers from './stock/Transfers';
 import Movement from './stock/Movement';
 import Createuser from './adminpage/Createuser';
@@ -38,6 +40,7 @@ function App() {
         <Route path='/' element={<Login />} />
         <Route path='/checkout' element={<Checkout />} />
         <Route path='/register' element={<Register />} />
+        <Route path='/returns' element={<Returns />} />
         
         <Route path='/createuser' element={<Createuser />} />
         <Route path='movement' element={<Movement />} />
@@ -50,12 +53,14 @@ function App() {
           <Route path='dashboard' element={<Dashboard />} />
           <Route path='customer' element={<Customer />} />
           <Route path='category' element={<Category />} />
+          <Route path='notification' element={<Notification />} />
           <Route path='users' element={<Users />} />
           <Route path='inventory' element={<Inventory />} >
           <Route index element={<Navigate to="transfers" replace />} /> 
           <Route path='orders' element={<Orders />} />
           <Route path='returns' element={<Returns/>} />
           <Route path='transfers' element={<Transfers />} />
+          
          
 
           </Route>

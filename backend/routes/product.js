@@ -11,7 +11,7 @@ const upload = multer({ storage });
 
 // Create Product
 router.post('/products', upload.single('image'), async (req, res) => {
-    const { name, description, price, quantity, category_id, sku } = req.body;
+    const { barcode, name, description, price, quantity, category_id, sku } = req.body;
     let image = null;
     let image_type = 'image/jpeg'; // Store the image type as JPEG
 
@@ -24,12 +24,16 @@ router.post('/products', upload.single('image'), async (req, res) => {
         }
     }
 
-    if (!name || !price || !quantity || !category_id || !sku) {
-        return res.status(400).json({ error: 'Name, SKU, price, quantity, and category_id are required' });
+    if (!barcode || !name || !price || !quantity || !category_id || !sku) {
+        return res.status(400).json({ error: 'Barcode, name, SKU, price, quantity, and category_id are required' });
     }
 
-    const query = 'INSERT INTO products (name, description, price, quantity, category_id, sku, image, image_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    db.query(query, [name, description, price, quantity, category_id, sku, image, image_type], (err, results) => {
+    const query = `
+        INSERT INTO products (barcode, name, description, price, quantity, category_id, sku, image, image_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    db.query(query, [barcode, name, description, price, quantity, category_id, sku, image, image_type], (err, results) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Database error' });
@@ -44,11 +48,13 @@ router.post('/products', upload.single('image'), async (req, res) => {
             FROM branches b
             WHERE b.name = 'Main Branch';
         `;
+        
         db.query(mainBranchQuery, [productId, quantity, category_id], (err) => {
             if (err) {
                 console.error('Error inserting product into Main Branch:', err);
                 return res.status(500).json({ error: 'Error inserting product into Main Branch' });
             }
+            
             res.status(201).json({ message: 'Product created and added to Main Branch', id: productId });
         });
     });
@@ -80,12 +86,12 @@ router.get('/products/:id/image', (req, res) => {
 });
 
 
-//update
+
 
 // Update Product
 router.put('/products/:id', upload.single('image'), async (req, res) => {
     const { id } = req.params;
-    const { name, description, price, quantity, category_id, sku } = req.body;
+    const { barcode, name, description, price, quantity, category_id, sku } = req.body;
     let image = null;
 
     if (req.file) {
@@ -97,16 +103,22 @@ router.put('/products/:id', upload.single('image'), async (req, res) => {
         }
     }
 
-    if (!name || !price || !quantity || !category_id || !sku) {
-        return res.status(400).json({ error: 'Name, SKU, price, quantity, and category_id are required' });
+    if (!barcode || !name || !price || !quantity || !category_id || !sku) {
+        return res.status(400).json({ error: 'Barcode, name, SKU, price, quantity, and category_id are required' });
     }
 
-    const query = 'UPDATE products SET name = ?, description = ?, price = ?, quantity = ?, category_id = ?, sku = ?, image = ? WHERE id = ?';
-    db.query(query, [name, description, price, quantity, category_id, sku, image, id], (err, results) => {
+    const query = `
+        UPDATE products
+        SET barcode = ?, name = ?, description = ?, price = ?, quantity = ?, category_id = ?, sku = ?, image = ?
+        WHERE id = ?
+    `;
+    
+    db.query(query, [barcode, name, description, price, quantity, category_id, sku, image, id], (err, results) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Database error' });
         }
+
         if (results.affectedRows === 0) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -118,6 +130,7 @@ router.put('/products/:id', upload.single('image'), async (req, res) => {
             SET branch_products.quantity = ?, branch_products.category_id = ?
             WHERE branch_products.product_id = ? AND b.name = 'Main Branch';
         `;
+        
         db.query(updateBranchQuery, [quantity, category_id, id], (err) => {
             if (err) {
                 console.error('Error updating product in Main Branch:', err);
@@ -127,6 +140,7 @@ router.put('/products/:id', upload.single('image'), async (req, res) => {
         });
     });
 });
+
 
 //geting product by id
 
@@ -233,7 +247,7 @@ router.get('/categories/:category_id/products', (req, res) => {
 });
 
 router.post('/products', upload.single('image'), async (req, res) => {
-    const { name, description, price, quantity, category_id, sku } = req.body;
+    const {barcode, name, description, price, quantity, category_id, sku } = req.body;
     
     // Check if SKU already exists
     const skuCheckQuery = 'SELECT COUNT(*) AS count FROM products WHERE sku = ?';
@@ -259,7 +273,7 @@ router.post('/products', upload.single('image'), async (req, res) => {
             }
         }
 
-        const query = 'INSERT INTO products (name, description, price, quantity, category_id, sku, image, image_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        const query = 'INSERT INTO products (barcode ,name, description, price, quantity, category_id, sku, image, image_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)';
         db.query(query, [name, description, price, quantity, category_id, sku, image, image_type], (err, results) => {
             if (err) {
                 console.error('Database error:', err);
@@ -271,12 +285,12 @@ router.post('/products', upload.single('image'), async (req, res) => {
 });
 
 
-// Get Product Details by Name (Case-Insensitive)
+// Get Product Details by Name or Barcode (Case-Insensitive)
 router.get('/api/products/details', async (req, res) => {
-    const { productName } = req.query;
+    const { productName, barcode } = req.query;
 
-    if (!productName) {
-        return res.status(400).json({ error: 'Product name is required' });
+    if (!productName && !barcode) {
+        return res.status(400).json({ error: 'Either product name or barcode is required' });
     }
 
     try {
@@ -286,11 +300,12 @@ router.get('/api/products/details', async (req, res) => {
             FROM products p
             JOIN branch_products bp ON p.id = bp.product_id
             JOIN branches b ON bp.branch_id = b.id
-            WHERE LOWER(p.name) = LOWER(?) AND b.name = 'Main Branch'
+            WHERE (LOWER(p.name) = LOWER(?) OR p.barcode = ?)
+              AND b.name = 'Main Branch'
             LIMIT 1;
         `;
 
-        const [productDetails] = await db.promise().query(findProductQuery, [productName]);
+        const [productDetails] = await db.promise().query(findProductQuery, [productName, barcode]);
 
         if (productDetails.length === 0) {
             return res.status(404).json({ error: 'Product not found in Main Branch' });
@@ -304,39 +319,59 @@ router.get('/api/products/details', async (req, res) => {
     }
 });
 
-// Get Products by Category and Name (Case-Insensitive)
+// Get Products by Category, Name, or Barcode (Case-Insensitive)
 router.get('/prodcat', (req, res) => {
-    const { productName, categoryId } = req.query;
+    const { productName, categoryId, barcode } = req.query;
 
     console.log('Received productName:', productName);
     console.log('Received categoryId:', categoryId);
+    console.log('Received barcode:', barcode);
 
     if (!categoryId) {
         return res.status(400).json({ error: 'Category ID is required' });
     }
+
+    // Build query conditionally based on provided parameters
+    const conditions = [];
+    const queryParams = [];
+
+    if (productName) {
+        conditions.push('LOWER(p.name) LIKE LOWER(?)');
+        queryParams.push(`%${productName}%`);
+    }
+
+    if (barcode) {
+        conditions.push('p.barcode = ?');
+        queryParams.push(barcode);
+    }
+
+    conditions.push('p.category_id = ?');
+    queryParams.push(categoryId);
+    conditions.push('b.name = \'Main Branch\'');
 
     const findProductsQuery = `
         SELECT p.id AS productId, p.name, p.price, bp.quantity AS quantityInMainBranch
         FROM products p
         JOIN branch_products bp ON p.id = bp.product_id
         JOIN branches b ON bp.branch_id = b.id
-        WHERE LOWER(p.name) LIKE LOWER(?) AND p.category_id = ? AND b.name = 'Main Branch'
+        WHERE ${conditions.join(' AND ')}
         LIMIT 10;
     `;
 
-    db.query(findProductsQuery, [`%${productName}%`, categoryId], (err, products) => {
+    db.query(findProductsQuery, queryParams, (err, products) => {
         if (err) {
             console.error('Database error details:', err.message);  // Log the specific error details
             return res.status(500).json({ error: 'Database error' });
         }
 
         if (products.length === 0) {
-            return res.status(404).json({ error: 'No products found in Main Branch for the given category' });
+            return res.status(404).json({ error: 'No products found in Main Branch for the given criteria' });
         }
 
         res.status(200).json(products);
     });
 });
+
 
 
 
