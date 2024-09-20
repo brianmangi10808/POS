@@ -1,102 +1,35 @@
+import React, { useState } from 'react';
 
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './Category.css';
-import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
+function Category() {
+  const [barcode, setBarcode] = useState('');
 
-// URL of your API
-const API_URL = 'http://localhost:3000/api/categories';
+  // Handle the input from the barcode scanner
+  const handleBarcodeInput = (e) => {
+    setBarcode(e.target.value);
 
-const Category = () => {
-    const [categories, setCategories] = useState([]);
-    const [name, setName] = useState('');
-    const [editingCategoryId, setEditingCategoryId] = useState(null);
-    const [error, setError] = useState('');
+    // Log the barcode once it reaches a specific length (assuming it's 12 digits)
+    if (e.target.value.length >= 12) { // You can adjust this based on your barcode length
+      console.log('Scanned Barcode:', e.target.value);
+      
+      // Optional: You can also trigger additional actions, like fetching product details
+      // fetchProductDetails(e.target.value);
+    }
+  };
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
-
-    const fetchCategories = async () => {
-        try {
-            const response = await axios.get(API_URL);
-            setCategories(response.data);
-        } catch (err) {
-            setError('Error fetching categories');
-        }
-    };
-
-    const handleCreateOrUpdate = async (e) => {
-        e.preventDefault();
-        setError('');
-
-        try {
-            const upperCaseName = name.toUpperCase(); // Convert name to uppercase
-
-            if (editingCategoryId) {
-                await axios.put(`${API_URL}/${editingCategoryId}`, { name: upperCaseName });
-            } else {
-                await axios.post(API_URL, { name: upperCaseName });
-            }
-            fetchCategories();
-            setName('');
-            setEditingCategoryId(null);
-        } catch (err) {
-            setError(err.response ? err.response.data.error : 'Error saving category');
-        }
-    };
-
-    const handleEdit = (category) => {
-        setName(category.name);
-        setEditingCategoryId(category.id);
-    };
-
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`${API_URL}/${id}`);
-            fetchCategories();
-        } catch (err) {
-            setError(err.response ? err.response.data.error : 'Error deleting category');
-        }
-    };
-
-    return (
-        <div>
-            <form onSubmit={handleCreateOrUpdate} className='category-form'>
-                <div className='category-input'>
-                    <label>Category Name</label>
-                    <input
-                        type="text"
-                        placeholder='Type category name ..'
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                    />
-                </div>
-                {error && <p>{error}</p>}
-                <button type="submit">
-                    {editingCategoryId ? 'Update Category' : 'Create Category'}
-                </button>
-            </form>
-            <div className="Category-list">
-                {categories.length === 0 ? (
-                    <p>No categories found</p>
-                ) : (
-                    <ul>
-                        {categories.map((category) => (
-                            <li key={category.id}>
-                                <div> {category.id}  {category.name}</div>
-                                <div className="category-button">
-                                    <button onClick={() => handleEdit(category)}><EditIcon boxSize={15} /></button>
-                                    <button onClick={() => handleDelete(category.id)}><DeleteIcon boxSize={15}/></button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
-        </div>
-    );
-};
+  return (
+    <div>
+      <h2>Scan a Product</h2>
+      <input
+        type="text"
+        value={barcode}
+        onChange={handleBarcodeInput}
+        placeholder="Scan barcode here"
+        autoFocus
+      />
+      {/* Optionally display the barcode on the UI */}
+      <p>Scanned Barcode: {barcode}</p>
+    </div>
+  );
+}
 
 export default Category;

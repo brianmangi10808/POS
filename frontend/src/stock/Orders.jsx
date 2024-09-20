@@ -233,6 +233,8 @@ const Orders = () => {
                 <div className="product-section">
                     <h1 className="page-title">Product Management</h1>
                     <form className="form-product" onSubmit={handleProductCreateOrUpdate}>
+                        <div className="left-right-product">
+                            <div className="left-product">
                         <div className="form-group">
                             <label htmlFor="productName">Product Name</label>
                             <input
@@ -245,6 +247,7 @@ const Orders = () => {
                             />
                         </div>
                         <div className="form-group">
+
                             <label htmlFor="description">Description</label>
                             <input
                                 id="description"
@@ -255,6 +258,7 @@ const Orders = () => {
                             />
                         </div>
                         <div className="form-group">
+                            
                             <label htmlFor="price">Price</label>
                             <input
                                 id="price"
@@ -293,14 +297,18 @@ const Orders = () => {
                                 ))}
                             </select>
                         </div>
+                        </div>
+                        <div className="right-product">
                         <div className="form-group">
-                            <label htmlFor="image">Image</label>
+                            <label htmlFor="image">IMAGE</label>
                             <input
                                 id="image"
                                 type="file"
                                 name="image"
                                 onChange={handleProductInputChange}
                             />
+                        </div>
+                        </div>
                         </div>
                         {error && <p className="error-message">{error}</p>}
                         <button
@@ -310,6 +318,7 @@ const Orders = () => {
                         >
                             {editingProductId ? 'Update Product' : 'Create Product'}
                         </button>
+                        
                     </form>
 
                     <h2 className="section-title">Products</h2>

@@ -1,0 +1,196 @@
+/* Base styles for all screens */
+.form-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.arrow-checkout {
+    margin-bottom: 20px;
+}
+
+.returns-back {
+    display: flex;
+    align-items: center;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.returns-back:hover {
+    text-decoration: underline;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+    color: #333;
+    font-weight: 600;
+}
+
+.form-wrapper {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.stock-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #495057;
+    font-weight: 500;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-group input[type="number"] {
+    -moz-appearance: textfield;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.form-group input[type="number"]::-webkit-inner-spin-button,
+.form-group input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.add-item-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    display: inline-block;
+    width: 100%;
+}
+
+.add-item-btn:hover {
+    background-color: #0056b3;
+}
+
+.submit-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    width: 100%;
+}
+
+.submit-btn:hover {
+    background-color: #218838;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .form-container {
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 992px) {
+    .form-container {
+        padding: 10px;
+    }
+
+    .form-group input, .form-group select {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .add-item-btn, .submit-btn {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-container {
+        padding: 10px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-size: 12px;
+    }
+
+    .form-group input, .form-group select {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .add-item-btn, .submit-btn {
+        padding: 8px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 576px) {
+    .form-container {
+        padding: 8px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    .form-group {
+        margin-bottom: 10px;
+    }
+
+    .form-group label {
+        font-size: 11px;
+    }
+
+    .form-group input, .form-group select {
+        padding: 6px;
+        font-size: 11px;
+    }
+
+    .add-item-btn, .submit-btn {
+        padding: 6px;
+        font-size: 11px;
+    }
+}

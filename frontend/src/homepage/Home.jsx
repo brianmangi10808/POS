@@ -251,6 +251,7 @@ const Home = () => {
               </li>
             ))}
           </ul>
+          <h3><NavLink to='/admin/branchform' className="nav-item"> <LuStore /> STORES</NavLink></h3>
         </div>
      
      

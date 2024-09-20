@@ -16,10 +16,12 @@ const Product = () => {
         price: '',
         quantity: '',
         category_id: '',
+        barcode: '',
         image: null
     });
     const [editingProductId, setEditingProductId] = useState(null);
     const [error, setError] = useState('');
+    const [barcode, setBarcode] = useState('');
 
     useEffect(() => {
         fetchProducts();
@@ -52,6 +54,30 @@ const Product = () => {
         }));
     };
 
+    const handleBarcodeScan = async (e) => {
+        const scannedBarcode = e.target.value;
+
+        if (scannedBarcode) {
+            try {
+                const response = await axios.get(`${API_URL}/barcode/${scannedBarcode}`);
+                const productData = response.data;
+
+                setProduct({
+                    name: productData.name,
+                    description: productData.description,
+                    price: productData.price,
+                    quantity: productData.quantity,
+                    category_id: productData.category_id,
+                    barcode: productData.barcode,
+                    image: null
+                });
+                setEditingProductId(productData.id);
+            } catch (err) {
+                setError('Product not found');
+            }
+        }
+    };
+
     const generateSKU = () => {
         if (!product.name) return '';
     
@@ -78,6 +104,7 @@ const Product = () => {
         formData.append('price', product.price);
         formData.append('quantity', product.quantity);
         formData.append('category_id', product.category_id);
+        formData.append('barcode', product.barcode);
         formData.append('sku', sku);
     
         if (product.image) {
@@ -102,6 +129,7 @@ const Product = () => {
                 price: '',
                 quantity: '',
                 category_id: '',
+                barcode: '',
                 image: null
             });
         } catch (err) {
@@ -116,6 +144,7 @@ const Product = () => {
             price: product.price,
             quantity: product.quantity,
             category_id: product.category_id,
+            barcode: product.barcode,
             image: null
         });
         setEditingProductId(product.id);
@@ -134,6 +163,18 @@ const Product = () => {
         <div className="product-management-container">
             <h1 className="page-title">Product Management</h1>
             <form className="form-product" onSubmit={handleCreateOrUpdate}>
+                <div className="form-group">
+                    <label htmlFor="barcode">Barcode</label>
+                    <input
+                        id="barcode"
+                        type="text"
+                        name="barcode"
+                        value={product.barcode}
+                        onChange={handleInputChange}
+                        placeholder="Enter barcode"
+                        required
+                    />
+                </div>
                 <div className="form-group">
                     <label htmlFor="name">Product Name</label>
                     <input
@@ -229,6 +270,7 @@ const Product = () => {
                                 <span className="product-sku">SKU: {prod.sku}</span>
                                 <span className="product-quantity">Q: {prod.quantity}</span>
                                 <span className="category-name">{prod.category_name}</span>
+                                <span className="product-barcode">Barcode: {prod.barcode}</span>
                             </div>
                             <div className="product-buttons">
                                 <button className="btn-edit" onClick={() => handleEdit(prod)}>

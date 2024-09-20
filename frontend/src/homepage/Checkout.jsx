@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useLocation } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 
+
 const Checkout = () => {
   const [activeCategory, setActiveCategory] = useState(null);
   const [cart, setCart] = useState([]);
@@ -26,6 +27,10 @@ const Checkout = () => {
   const { branchId, setBranchId, products, setProducts, username } = useContext(UserContext);
   const location = useLocation();
 
+  const [barcodeQuery, setBarcodeQuery] = useState('');
+
+
+
   useEffect(() => {
     if (location.state?.branchId && branchId === null) {
       setBranchId(location.state.branchId);
@@ -41,13 +46,22 @@ const Checkout = () => {
 
   const categories = [...new Set(products.map((product) => product.category_name))];
 
-  const filteredProducts = searchQuery
-    ? products.filter(product => product.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : selectedCategory
-    ? products.filter((product) => product.category_name === selectedCategory)
-    : products;
+  // const filteredProducts = searchQuery
+  //   ? products.filter(product => product.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  //   : selectedCategory
+  //   ? products.filter((product) => product.category_name === selectedCategory)
+  //   : products;
 
   // The rest of your code continues...
+  const filteredProducts = (searchQuery || barcodeQuery)
+  ? products.filter(product => 
+      (product.name && product.name.toLowerCase().includes(searchQuery.toLowerCase())) || 
+      (product.barcode && product.barcode.toLowerCase() === barcodeQuery)
+    )
+  : selectedCategory
+  ? products.filter((product) => product.category_name === selectedCategory)
+  : products;
+
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -230,6 +244,13 @@ const Checkout = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          <input 
+  type="text" 
+  placeholder="Search by barcode" 
+  value={barcodeQuery} 
+  onChange={(e) => setBarcodeQuery(e.target.value)} 
+/>
+
 
         </div>
         <div className="logout">
@@ -247,7 +268,9 @@ const Checkout = () => {
               </li>
             ))}
           </ul>
-        </div>
+         
+          <NavLink to='/returns' className="nav-return">  RETURNS</NavLink>
+               </div>
 
         <div className="product-list">
           {error && <p className="error">{error}</p>}
@@ -305,6 +328,7 @@ const Checkout = () => {
           ) : (
             <p>Your cart is empty</p>
           )}
+             <NavLink to='/returns' className="nav-return">  RETURNS</NavLink>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 .management-container {
     padding: 20px;
-    max-width: 1200px;
+    width: 100%;
     margin: auto;
 }
 
@@ -39,6 +39,7 @@
 
 .form-group {
     margin-bottom: 15px;
+  
 }
 
 .form-group label {
@@ -147,4 +148,13 @@
 .category-section,
 .product-section {
     margin-top: 20px;
+}
+.left-right-product{
+    display: flex;
+    flex-direction: row;
+  
+    justify-content: space-around;
+}
+.left-product{
+    width: 40%;
 }

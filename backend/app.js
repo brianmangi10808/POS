@@ -17,18 +17,24 @@ const sales= require('./routes/sales');
 const transactionRouter = require('./routes/transactionRouter');
 const transfer= require('./routes/transfer');
 const dashboard= require('./routes/dashboard');
+const notification= require('./routes/notification');
+const returns= require('./routes/returns');
 
 
 //Middleware for parsing JSON data
 app.use(express.json());
 
 
-// CORS configuration
-app.use(cors({
-    origin: 'http://localhost:5173', // Allow requests from this origin
-    methods: 'GET,POST,PUT,DELETE',
-    allowedHeaders: 'Content-Type,Authorization'
-}));
+
+
+const corsOptions = {
+  origin: 'http://localhost:5173', // Adjust this to your client’s origin
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+
 
 
 
@@ -41,6 +47,8 @@ app.use('/api/', transfer);
 app.use('/api/', branches);
 app.use('/api/', stock);
 app.use('/api/', sales);
+app.use('/api/', notification);
+app.use('/api/', returns);
 app.use('/api', transactionRouter);
 
 

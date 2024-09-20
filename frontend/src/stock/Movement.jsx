@@ -52,32 +52,35 @@ function Movement() {
     setSearchResults([]); // Clear previous search results
     setSearchTerm(''); // Clear search term
   };
-
   const handleSearchChange = async (e) => {
-    setSearchTerm(e.target.value);
-
-    if (e.target.value.length > 2 && selectedCategory) {
+    const value = e.target.value.trim();
+    setSearchTerm(value);
+  
+    if (value.length > 2 && selectedCategory) {
       try {
-        const response = await axios.get(`http://localhost:3000/api/prodcat`, {
+        const response = await axios.get('http://localhost:3000/api/prodcat', {
           params: {
-            productName: e.target.value,
-            categoryId: selectedCategory
+            productName: value,
+            categoryId: selectedCategory,
+            barcode: value
           }
         });
+  
         if (response.data) {
-          setSearchResults(response.data);  // Store the results to display them
+          setSearchResults(response.data);
         } else {
           setSearchResults([]);
           console.log('No products found');
         }
       } catch (error) {
-        console.error('Error fetching product details:', error);
+        console.error('Error fetching product details:', error.response || error.message);
         setError('Failed to fetch product details. Please check the console for more details.');
       }
     } else {
       setSearchResults([]);
     }
   };
+  
 
   const handleProductSelect = (product) => {
     setSelectedProduct(product);
@@ -267,6 +270,7 @@ function Movement() {
               onChange={handleSearchChange}
               disabled={!selectedCategory}
             />
+            
             <ul className="product-search-results">
               {searchResults.map((product, index) => (
                 <li key={index} onClick={() => handleProductSelect(product)}>
