@@ -19,10 +19,13 @@ const Orders = () => {
         category_id: '',
         image: null
     });
+    const [taxRate, setTaxRate] = useState('');
+
     const [editingCategoryId, setEditingCategoryId] = useState(null);
     const [editingProductId, setEditingProductId] = useState(null);
     const [error, setError] = useState('');
-    const [view, setView] = useState('categories'); // State to toggle between categories and products view
+    const [view, setView] = useState('categories'); 
+    const [successMessage, setSuccessMessage] = useState('');
 
     useEffect(() => {
         fetchCategories();
@@ -62,34 +65,42 @@ const Orders = () => {
     const handleCategoryCreateOrUpdate = async (e) => {
         e.preventDefault();
         setError('');
-
+    
         try {
             const upperCaseName = name.toUpperCase();
-
+    
+            const categoryData = {
+                name: upperCaseName,
+                tax_rate: taxRate // Include the selected tax rate
+            };
+    
             if (editingCategoryId) {
-                await axios.put(`${CATEGORY_API_URL}/${editingCategoryId}`, { name: upperCaseName });
+                await axios.put(`${CATEGORY_API_URL}/${editingCategoryId}`, categoryData);
             } else {
-                await axios.post(CATEGORY_API_URL, { name: upperCaseName });
+                await axios.post(CATEGORY_API_URL, categoryData);
             }
             fetchCategories();
             setName('');
+            setTaxRate(''); // Reset tax rate after submission
             setEditingCategoryId(null);
         } catch (err) {
             setError(err.response ? err.response.data.error : 'Error saving category');
         }
     };
+    
 
     const handleProductCreateOrUpdate = async (e) => {
         e.preventDefault();
         setError('');
-
+        setSuccessMessage(''); // Clear previous success message
+    
         const sku = generateSKU();
-
+    
         if (!sku) {
             setError('Error generating SKU. Please ensure all fields are filled out correctly.');
             return;
         }
-
+    
         const formData = new FormData();
         formData.append('name', product.name);
         formData.append('description', product.description);
@@ -97,23 +108,36 @@ const Orders = () => {
         formData.append('quantity', product.quantity);
         formData.append('category_id', product.category_id);
         formData.append('sku', sku);
-
+    
         if (product.image) {
             formData.append('image', product.image);
         }
-
+    
         try {
+            console.log('PRODUCT_API_URL:', PRODUCT_API_URL);
+            // Log formData contents
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+    
             if (editingProductId) {
+                // Update existing product
                 await axios.put(`${PRODUCT_API_URL}/${editingProductId}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
+                setSuccessMessage('Product updated successfully!');
                 setEditingProductId(null);
             } else {
+                // Create new product
                 await axios.post(PRODUCT_API_URL, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
+                setSuccessMessage('Product created, added to Main Branch, and synced with eTIMS successfully!');
             }
-            fetchProducts();
+    
+            fetchProducts(); // Refresh products list
+    
+            // Clear the product form
             setProduct({
                 name: '',
                 description: '',
@@ -122,15 +146,20 @@ const Orders = () => {
                 category_id: '',
                 image: null
             });
+    
         } catch (err) {
+            console.error('Error during Axios request:', err); // Log error details
             setError(err.response ? err.response.data.error : 'Error saving product');
         }
     };
-
+    
+    
     const handleEditCategory = (category) => {
         setName(category.name);
+        setTaxRate(category.tax_rate); // Set the tax rate from the selected category
         setEditingCategoryId(category.id);
     };
+    
 
     const handleEditProduct = (product) => {
         setProduct({
@@ -195,7 +224,22 @@ const Orders = () => {
                                 onChange={handleCategoryInputChange}
                                 required
                             />
+
                         </div>
+                        <div className="form-group">
+        <label htmlFor="tax_rate">Tax Rate</label>
+        <select
+            id="tax_rate"
+            value={taxRate}
+            onChange={(e) => setTaxRate(e.target.value)}
+            required
+        >
+            <option value="">Select Tax Rate</option>
+            <option value="0.16">16%</option>
+            <option value="0.08">8%</option>
+            <option value="0.00">Exempted / 0%</option>
+        </select>
+    </div>
                         {error && <p className="error-message">{error}</p>}
                         <button type="submit" className="btn-submit">
                             {editingCategoryId ? 'Update Category' : 'Create Category'}
@@ -211,6 +255,7 @@ const Orders = () => {
                                 <li className="item" key={category.id}>
                                     <div className="item-details">
                                         <span className="item-name">{category.name}</span>
+                                        <span className="item-tax-rate">{category.tax_rate * 100}%</span>
                                     </div>
                                     <div className="item-buttons">
                                         <button onClick={() => handleEditCategory(category)}>
@@ -318,6 +363,9 @@ const Orders = () => {
                         >
                             {editingProductId ? 'Update Product' : 'Create Product'}
                         </button>
+                         {/* Display success message */}
+      {successMessage && <div className="success-message">{successMessage}</div>}
+
                         
                     </form>
 

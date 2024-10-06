@@ -3,38 +3,44 @@ import { UserContext } from '../signup/UserContext';
 import axios from 'axios';
 import { DeleteIcon, CloseIcon } from '@chakra-ui/icons';
 
-import './Home.css';
+import "./New.css"
 
 import profile from '../assets/profile.jpg';
 import { v4 as uuidv4 } from 'uuid';
 import { useLocation } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
+import Receipt from './Receipt';
 import { useNavigate } from 'react-router-dom';
 
 
 
 
-const Home = () => {
-  const [activeCategory, setActiveCategory] = useState(null);
+const Newhome = () => {
+
   const [cart, setCart] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+ 
   const [error, setError] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showModalCash, setShowModalCash] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
-  const [imageUrls, setImageUrls] = useState({});
+ 
   const [amountReceived, setAmountReceived] = useState('');
   const [change, setChange] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(null); // Initialize selectedCategory
+
   const [receiptData, setReceiptData] = useState(null);
   const { branchId, setBranchId, products, setProducts, username } = useContext(UserContext);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isFormValid, setIsFormValid] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
 
   
-  
+  const handlePrintReceipt = () => {
+    window.print(); // Trigger browser print dialog
+  };
 
   useEffect(() => {
     if (location.state?.branchId && branchId === null) {
@@ -57,53 +63,27 @@ const Home = () => {
   }, [branchId, location.state?.branchId, setBranchId, setProducts]);
 
 
-  const categories = [...new Set(products.map((product) => product.category_name))];
+ 
 
-  const filteredProducts = searchQuery
-    ? products.filter(product => product.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : selectedCategory
-    ? products.filter((product) => product.category_name === selectedCategory)
-    : products;
-
-  // The rest of your code continues...
-
-  useEffect(() => {
-    const fetchImages = async () => {
-      const newImageUrls = {};
-      for (const product of products) {
-        try {
-          const response = await axios.get(`http://localhost:3000/api/products/${product.id}/image`, {
-            responseType: 'arraybuffer'
-          });
-          const imageBlob = new Blob([response.data], { type: 'image/jpeg' });
-          const imageUrl = URL.createObjectURL(imageBlob);
-          newImageUrls[product.id] = imageUrl;
-        } catch (error) {
-          console.error(`Error fetching image for product ${product.id}:`, error);
-          newImageUrls[product.id] = profile;
-        }
-      }
-      setImageUrls(newImageUrls);
-    };
-
-    if (products.length > 0) {
-      fetchImages();
-    }
-  }, [products]);
+ 
 
   const handlePaymentClick = (method) => {
     setPaymentMethod(method);
     setTotalAmount(calculateTotal());
-
+  
     if (method === 'MPESA') {
       setShowModal(true);
+      setShowModalCash(false); // Hide the CASH modal if MPESA is selected
     } else if (method === 'CASH') {
       setShowModalCash(true);
+      setShowModal(false); // Hide the MPESA modal if CASH is selected
     }
   };
   
 
 const handleModalSubmit = async () => {
+
+ 
   let formattedPhoneNumber = phoneNumber.trim();
   if (formattedPhoneNumber.startsWith('0')) {
       formattedPhoneNumber = `254${formattedPhoneNumber.substring(1)}`;
@@ -125,7 +105,7 @@ const handleModalSubmit = async () => {
               quantity: item.quantity
           })),
           totalAmount: totalAmount,
-          paymentMethod: paymentMethod // Ensure this is correctly set
+          paymentMethod: paymentMethod 
       };
 
       if (username) {
@@ -158,8 +138,14 @@ console.log('Recorded Transaction IDs:', transactionId);
           const result = await response.text();
           alert(result);
       } else if (paymentMethod === 'CASH') {
-          alert(`Cash payment of KSH ${totalAmount} received successfully!`);
+          
       }
+
+      if (amountReceived < totalAmount) {
+        setError('Amount received should be equal to or more than the total amount');
+        return;
+      }
+
 
       const calculateTotalTax = () => {
         return cart.reduce((totalTax, item) => {
@@ -171,14 +157,14 @@ console.log('Recorded Transaction IDs:', transactionId);
 
       // Prepare stock update data
       const stockUpdateData = {
-          branchId: branchId, // Ensure branchId is correctly set
+          branchId: branchId, 
           items: cart.map(item => ({
               productId: item.id,
               sku: item.sku,
               quantity: item.quantity
           })),
           totalAmount: totalAmount,
-          paymentMethod: paymentMethod // Ensure this is included if required by the server
+          paymentMethod: paymentMethod 
       };
 
       console.log('Stock Update Data:', stockUpdateData); // Log stock update data
@@ -245,7 +231,14 @@ console.log('Recorded Transaction IDs:', transactionId);
         }
       ]);
     }
+    setSearchTerm("");
   };
+
+  // Function to filter products based on search term
+  const searchedProducts = products.filter((product) =>
+    product.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   const handleRemoveFromCart = (productId) => {
     setCart(cart.filter(item => item.id !== productId));
@@ -267,11 +260,25 @@ console.log('Recorded Transaction IDs:', transactionId);
     }, 0).toFixed(2);
   };
   
-  const handleAmountReceivedChange = (e) => {
+
+
+const handleAmountReceivedChange = (e) => {
     const receivedAmount = parseFloat(e.target.value) || 0;
+
+    if (receivedAmount < 0) {
+      setError('Amount received cannot be negative');
+      setIsFormValid(false);
+    } else if (e.target.value === '') {
+      setError('Please enter an amount');
+      setIsFormValid(false);
+    } else {
+      setError('');
+      const newChange = (receivedAmount - totalAmount).toFixed(2);
+      setChange(isNaN(newChange) ? 0 : newChange);
+      setIsFormValid(receivedAmount >= totalAmount); // Validate if amount is enough
+    }
+
     setAmountReceived(receivedAmount);
-    const newChange = (receivedAmount - totalAmount).toFixed(2);
-    setChange(isNaN(newChange) ? 0 : newChange);
   };
 
   return (
@@ -280,110 +287,125 @@ console.log('Recorded Transaction IDs:', transactionId);
         <div className="username-display-bar">
           <h4>Welcome, {username}</h4>
         </div>
-        <div className="search-inputs-bar">
-          <input
-            type="search"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-
-        </div>
+    
         <div className="logout-bar">
         <NavLink to='/'><button className="log-out-nav-bar">LOG OUT</button></NavLink>
         </div>
       </div>
-
-      <div className="body-home-bar">
-        <div className="sidebar-home-bar">
-          <h2>Categories</h2>
-          <ul>
-            {categories.map((category) => (
-              <li key={category} onClick={() => setSelectedCategory(category)}>
-                {category}
-              </li>
-            ))}
-          </ul>
-         
-         
-               </div>
-          
-        <div className="product-list-bar">
-        {/* <div className="column-header-product">
-          <div>ITEM</div>
-          <div>PRICE</div>
-         </div> */}
-          {error && <p className="error">{error}</p>}
-          {filteredProducts.map((product) => (
-     
-         <div className="product-card-bar" key={product.id}>
-
-         <button 
-           onClick={() => handleAddToCart(product)} 
-           className="product-card-button-bar"
-           style={{ all: 'unset', cursor: 'pointer', width: '100%', height: '100%' }}
-         >  
+ 
+      
+    <div className="new-checkout">
+      <div className="body-home-bar-new">
        
-         <div className="column-product">
-           <div>{product.description}</div>
-           <div>{Number(product.price).toFixed(2)}</div>
-          </div>
-           {/* <p>{product.description}</p>
-           <p>Price: KSH {Number(product.price).toFixed(2)}</p>
-           <p style={{ color: 'green', fontSize: '16px', fontWeight: '500' }}>ADD</p> */}
-         </button>
-       </div>
-       
-          ))}
-        </div>
+      <div className="product-list-bar">
+  {error && <p className="error">{error}</p>}
 
-        <div className="cart-container-bar">
-          <h2>Cart</h2>
-          {cart.length > 0 ? (
-            <div>
-              <ul>
-                {cart.map((item) => (
-                  <li key={item.id}>
-                   <p>
-         {item.name} - KSH {item.price.toFixed(2)} x {item.quantity} 
-           <br />
-          Tax: KSH {(Number(item.price) * item.quantity * Number(item.tax_rate)).toFixed(2)}
-       </p>
+  {/* Input stays at the top */}
+  <input
+    type="text"
+    placeholder="Search product..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="search-input"
+  />
 
-                    <button onClick={() => handleRemoveFromCart(item.id)}>
-                      <DeleteIcon />
-                    </button>
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => handleUpdateQuantity(item.id, parseInt(e.target.value))}
-                    />
-                  </li>
-                ))}
-              </ul>
-              <p>Total: KSH {calculateTotal()}</p>
-              <div className="payment-button-bar">
-                <button style={{ backgroundColor: '#28a745' }} onClick={() => handlePaymentClick('MPESA')}>
-                  Pay with MPESA
-                </button>
-                <button style={{ backgroundColor: '#ffc107' }} onClick={() => handlePaymentClick('CASH')}>
-                  Pay with CASH
-                </button>
-              </div>
+  {/* Render filtered products */}
+  {searchTerm && searchedProducts.length > 0 ? (
+    <div className="search-results">
+      {searchedProducts.map((product) => (
+        <div className="product-card-bar" key={product.id}>
+          <button
+             onClick={() => {
+                handleAddToCart(product);
+                setSearchTerm("");
+              }}
+            className="product-card-button-bar"
+            style={{ all: 'unset', cursor: 'pointer', width: '100%', height: '100%' }}
+          >
+            <div className="column-product">
+              <div>{product.description}</div>
+              <div>{Number(product.price).toFixed(2)}</div>
             </div>
-          ) : (
-            <p>Your cart is empty</p>
-          )}
-             <NavLink to='/returns' className="nav-return">  RETURNS</NavLink>
+          </button>
         </div>
+      ))}
+    </div>
+  ) : (
+    searchTerm && <p>No products found.</p>
+  )}
+</div>
+
+<div className="cart-container-bar-new">
+  <div>
+    <table className="cart-table-bar-new">
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>Qty</th>
+          <th>S Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {cart.length > 0 ? (
+          cart.map((item) => (
+            <tr key={item.id}>
+              <td>{item.name}</td>
+              <td>
+                <input
+                  type="number"
+                  value={item.quantity}
+                  onChange={(e) => handleUpdateQuantity(item.id, parseInt(e.target.value))}
+                  min="1"
+                  className="cart-quantity-input-new"
+                />
+              </td>
+              <td>KSH {item.price.toFixed(2)}</td>
+              <td>KSH {(item.price * item.quantity).toFixed(2)}</td>
+              <td>
+                <button onClick={() => handleRemoveFromCart(item.id)} className="cart-remove-button-new">
+                  <DeleteIcon />
+                </button>
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan="5" style={{ textAlign: 'center' }}>
+              No items in the cart
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+
+    {/* Display total amount only if cart has items */}
+    {cart.length > 0 && (
+      <p className="cart-summary-new">Total Amount: KSH {calculateTotal()}</p>
+    )}
+  </div>
+</div>
+
       </div>
-     
-      {/* MPESA Payment Modal */}
+
+  
+      <div className="cash-mpesa-new">    
+        <h2>PAYMENT MODE </h2>
+      <div className="payment-button-bar-new">
+            <button className="pay-button mpesa-button-new" onClick={() => handlePaymentClick('MPESA')}>
+              Pay with MPESA
+            </button>
+            <button className="pay-button cash-button-new" onClick={() => handlePaymentClick('CASH')}>
+              Pay with CASH
+            </button>
+          </div>
+
       {showModal && (
-        <div className="modal-bar">
+        <div className="modal-bar-new">
           <h2>MPESA Payment</h2>
           <input
             type="text"
+            
             placeholder="Enter Phone Number"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
@@ -395,21 +417,39 @@ console.log('Recorded Transaction IDs:', transactionId);
 
       {/* Cash Payment Modal */}
       {showModalCash && (
-        <div className="modal-bar">
-          <h2>CASH Payment</h2>
-          <input
-            type="number"
-            placeholder="Amount Received"
-            value={amountReceived}
-            onChange={handleAmountReceivedChange}
-          />
-          <p>Change: KSH {change ? Number(change).toFixed(2) : '0.00'}</p>
-          <button onClick={handleModalSubmit}>Submit Payment</button>
-          <button onClick={() => setShowModalCash(false)}><CloseIcon /></button>
-        </div>
-      )}
+  <div className="modal-bar-new">
+    <h2>CASH Payment</h2>
+    <input
+      type="number"
+      placeholder="Amount Received"
+      value={amountReceived}
+      onChange={handleAmountReceivedChange}
+    />
+    <h3>Change: KSH {change ? Number(change).toFixed(2) : '0.00'}</h3>
+    {error && <p style={{ color: 'red' }}>{error}</p>} {/* Display error message */}
+    <button onClick={handleModalSubmit} disabled={!isFormValid}>Submit Payment</button>
+    <button onClick={() => setShowModalCash(false)}><CloseIcon /></button>
+  </div>
+)} 
+
+<div className="receipt-printing">
+    <div>
+    <button className="pay-button recipt-button-new" onClick={handlePrintReceipt}>
+                  PRINT
+                </button>
+            </div>
+            <div>   
+            <button className="pay-button receipt-button-old" onClick={() => handlePaymentClick('MPESA')}>
+           DONT  PRINT 
+            </button>
+            </div>
+            </div>
+
+      </div>
+      </div>
+      
     </div>
   );
 };
 
-export default Home;
+export default Newhome

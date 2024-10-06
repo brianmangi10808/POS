@@ -54,29 +54,29 @@ const Product = () => {
         }));
     };
 
-    const handleBarcodeScan = async (e) => {
-        const scannedBarcode = e.target.value;
+    // const handleBarcodeScan = async (e) => {
+    //     const scannedBarcode = e.target.value;
 
-        if (scannedBarcode) {
-            try {
-                const response = await axios.get(`${API_URL}/barcode/${scannedBarcode}`);
-                const productData = response.data;
+    //     if (scannedBarcode) {
+    //         try {
+    //             const response = await axios.get(`${API_URL}/barcode/${scannedBarcode}`);
+    //             const productData = response.data;
 
-                setProduct({
-                    name: productData.name,
-                    description: productData.description,
-                    price: productData.price,
-                    quantity: productData.quantity,
-                    category_id: productData.category_id,
-                    barcode: productData.barcode,
-                    image: null
-                });
-                setEditingProductId(productData.id);
-            } catch (err) {
-                setError('Product not found');
-            }
-        }
-    };
+    //             setProduct({
+    //                 name: productData.name,
+    //                 description: productData.description,
+    //                 price: productData.price,
+    //                 quantity: productData.quantity,
+    //                 category_id: productData.category_id,
+    //                 barcode: productData.barcode,
+    //                 image: null
+    //             });
+    //             setEditingProductId(productData.id);
+    //         } catch (err) {
+    //             setError('Product not found');
+    //         }
+    //     }
+    // };
 
     const generateSKU = () => {
         if (!product.name) return '';
@@ -104,7 +104,6 @@ const Product = () => {
         formData.append('price', product.price);
         formData.append('quantity', product.quantity);
         formData.append('category_id', product.category_id);
-        formData.append('barcode', product.barcode);
         formData.append('sku', sku);
     
         if (product.image) {
@@ -112,6 +111,12 @@ const Product = () => {
         }
     
         try {
+            console.log('API_URL:', API_URL);
+            // Log formData contents
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+    
             if (editingProductId) {
                 await axios.put(`${API_URL}/${editingProductId}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
@@ -129,13 +134,14 @@ const Product = () => {
                 price: '',
                 quantity: '',
                 category_id: '',
-                barcode: '',
                 image: null
             });
         } catch (err) {
+            console.error('Axios error:', err);
             setError(err.response ? err.response.data.error : 'Error saving product');
         }
     };
+    
     
     const handleEdit = (product) => {
         setProduct({
@@ -144,7 +150,7 @@ const Product = () => {
             price: product.price,
             quantity: product.quantity,
             category_id: product.category_id,
-            barcode: product.barcode,
+            // barcode: product.barcode,
             image: null
         });
         setEditingProductId(product.id);
