@@ -4,7 +4,7 @@ import axios from 'axios';
 import { DeleteIcon, CloseIcon } from '@chakra-ui/icons';
 
 import "./New.css"
-
+import { Snackbar, Alert, TextField, Button, Modal, Box, Typography } from '@mui/material';
 import profile from '../assets/profile.jpg';
 import { v4 as uuidv4 } from 'uuid';
 import { useLocation } from 'react-router-dom';
@@ -33,6 +33,8 @@ const Newhome = () => {
   const { branchId, setBranchId, products, setProducts, username } = useContext(UserContext);
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
+
+  const [openSnackbar, setOpenSnackbar] = useState(false); // Snackbar state
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -80,106 +82,77 @@ const Newhome = () => {
     }
   };
   
-
-const handleModalSubmit = async () => {
-
- 
-  let formattedPhoneNumber = phoneNumber.trim();
-  if (formattedPhoneNumber.startsWith('0')) {
+  const handleModalSubmit = async () => {
+    let formattedPhoneNumber = phoneNumber.trim();
+    if (formattedPhoneNumber.startsWith('0')) {
       formattedPhoneNumber = `254${formattedPhoneNumber.substring(1)}`;
-  }
-  const totalAmount = calculateTotal();
+    }
 
-  const invalidItems = cart.filter(item => !item.sku || !item.quantity);
-  if (invalidItems.length > 0) {
-      setError('Each item must have a SKU and quantity');
+    const totalAmount = calculateTotal();
+  
+    // Move calculateTotalTax function before it's used
+    const calculateTotalTax = () => {
+      return cart.reduce((totalTax, item) => {
+        const taxAmount = Number(item.selling_price) * item.quantity * Number(item.tax_rate);
+        return totalTax + taxAmount;
+      }, 0).toFixed(2);
+    };
+
+    if (amountReceived < totalAmount) {
+      setError('Amount received must be equal to or greater than the total amount');
+      setOpenSnackbar(true);
       return;
-  }
+    }
 
-  try {
-      // Prepare transaction data
-      const transactionData = {
-          items: cart.map(item => ({
-              productId: item.id,
-              sku: item.sku,
-              quantity: item.quantity
-          })),
-          totalAmount: totalAmount,
-          paymentMethod: paymentMethod 
+    const invalidItems = cart.filter(item => !item.sku || !item.quantity);
+    if (invalidItems.length > 0) {
+      setError('Each item must have a SKU and quantity');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    try {
+      const invoiceResponse = await axios.get('http://localhost:3000/api/invoice-number');
+      const invoiceNumber = invoiceResponse.data.invoiceNumber;
+
+      const itemList = cart.map((item, index) => ({
+        itemSeq: index + 1,
+        itemCd: item.sku,
+        itemNm: item.name,
+        qty: item.quantity,
+        prc: item.selling_price.toFixed(2),
+        splyAmt: (item.selling_price * item.quantity).toFixed(2),
+        taxTyCd: item.tax_rate === 0.16 ? 'B' : 'D',
+        taxAmt: (item.selling_price * item.tax_rate * item.quantity).toFixed(2),
+        totAmt: (item.selling_price * item.quantity * (1 + item.tax_rate)).toFixed(2),
+      }));
+
+      const invoiceData = {
+        invcNo: invoiceNumber,
+        items: itemList,
+        custNm: username || 'Guest',
+        totAmt: totalAmount,
+        taxAmtB: calculateTotalTax(),
+        pmtTyCd: paymentMethod === 'MPESA' ? '01' : '02',
       };
 
-      if (username) {
-          transactionData.customerName = username; // Include if username is available
-      }
+      await axios.post('http://localhost:3000/api/saveTrnsSalesOsdc', invoiceData);
 
-      console.log('Transaction Data:', transactionData); // Log transaction data
+      const transactionResponse = await axios.post('http://localhost:3000/api/transactions', {
+        items: cart.map(item => ({
+          productId: item.id,
+          sku: item.sku,
+          quantity: item.quantity,
+        })),
+        totalAmount,
+        paymentMethod,
+        invoiceNumber,
+      });
 
-      // Make API request for transactions
-      const transactionResponse = await axios.post('http://localhost:3000/api/transactions', transactionData);
-      const transactionId = transactionResponse.data.transactionId;
-
-
-console.log('Recorded Transaction IDs:', transactionId);
-
-
-      // Handle MPESA or Cash payments
-      if (paymentMethod === 'MPESA') {
-          const response = await fetch('http://localhost:3000/api/mpesa/pay', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                  amount: totalAmount,
-                  phoneNumber: formattedPhoneNumber,
-                  accountReference: 'Swiftel Fiber',
-                  transactionId: transactionId
-              })
-          });
-
-          const result = await response.text();
-          alert(result);
-      } else if (paymentMethod === 'CASH') {
-          
-      }
-
-      if (amountReceived < totalAmount) {
-        setError('Amount received should be equal to or more than the total amount');
-        return;
-      }
-
-
-      const calculateTotalTax = () => {
-        return cart.reduce((totalTax, item) => {
-          const taxAmount = Number(item.price) * item.quantity * Number(item.tax_rate);
-          return totalTax + taxAmount;
-        }, 0).toFixed(2);
-      };
-      
-
-      // Prepare stock update data
-      const stockUpdateData = {
-          branchId: branchId, 
-          items: cart.map(item => ({
-              productId: item.id,
-              sku: item.sku,
-              quantity: item.quantity
-          })),
-          totalAmount: totalAmount,
-          paymentMethod: paymentMethod 
-      };
-
-      console.log('Stock Update Data:', stockUpdateData); // Log stock update data
-
-      // Make API request to update stock
-      const stockResponse = await axios.post('http://localhost:3000/api/update-stock', stockUpdateData);
-
-      // Check stock update response if needed
-      console.log('Stock Update Response:', stockResponse.data);
-       
-      // Prepare receipt data
       const newReceiptData = {
         businessName: 'My Electronics Shop',
         cashierName: username,
-        transactionId: `TX-${new Date().toISOString().replace(/[-:.]/g, '').slice(0, 14)}`,
+        transactionId: invoiceNumber,
         items: cart,
         totalAmount: calculateTotal(),
         totalTax: calculateTotalTax(),
@@ -187,28 +160,17 @@ console.log('Recorded Transaction IDs:', transactionId);
         date: new Date().toLocaleString(),
       };
 
-      // Set the receiptData
       setReceiptData(newReceiptData);
-
-      // Log receiptData after setting it
-      console.log('Receipt Data:', newReceiptData);
-
-      // Clear the cart and close modals
       setCart([]);
       setShowModal(false);
-      setShowModalCash(false);
-
-      // Navigate to the receipt page with the updated data
+      await axios.post('http://localhost:3000/api/invoice-number/increment');
       navigate('/receipt', { state: { receiptData: newReceiptData } });
 
-  } catch (error) {
-      setError('Error during checkout');
-      console.error('Error during checkout:', error.response ? error.response.data : error.message);
-  }
-};
-
-  
-  
+    } catch (error) {
+      setError('Error during checkout: ' + (error.response?.data || error.message));
+      setOpenSnackbar(true);
+    }
+  };
 
   const handleAddToCart = (product) => {
     const existingProduct = cart.find((item) => item.id === product.id);
@@ -227,7 +189,7 @@ console.log('Recorded Transaction IDs:', transactionId);
           ...product,
           quantity: 1,
           sku: product.sku || 'default-sku',
-          price: Number(product.price)
+          selling_price: Number(product.selling_price)
         }
       ]);
     }
@@ -236,7 +198,7 @@ console.log('Recorded Transaction IDs:', transactionId);
 
   // Function to filter products based on search term
   const searchedProducts = products.filter((product) =>
-    product.description.toLowerCase().includes(searchTerm.toLowerCase())
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
 
@@ -252,11 +214,12 @@ console.log('Recorded Transaction IDs:', transactionId);
     ));
   };
 
+  
   const calculateTotal = () => {
     return cart.reduce((total, item) => {
-      const priceWithoutTax = Number(item.price) * item.quantity;
-      const taxAmount = priceWithoutTax * Number(item.tax_rate); // Assuming tax_rate is in decimal form (e.g., 0.16 for 16%)
-      return total + priceWithoutTax + taxAmount;
+      const selling_priceWithoutTax = Number(item.selling_price) * item.quantity;
+      const taxAmount = selling_priceWithoutTax * Number(item.tax_rate); // Assuming tax_rate is in decimal form (e.g., 0.16 for 16%)
+      return total + selling_priceWithoutTax + taxAmount;
     }, 0).toFixed(2);
   };
   
@@ -323,8 +286,9 @@ const handleAmountReceivedChange = (e) => {
             style={{ all: 'unset', cursor: 'pointer', width: '100%', height: '100%' }}
           >
             <div className="column-product">
+            <div>{product.name}</div>
               <div>{product.description}</div>
-              <div>{Number(product.price).toFixed(2)}</div>
+              <div>{Number(product.selling_price).toFixed(2)}</div>
             </div>
           </button>
         </div>
@@ -342,7 +306,7 @@ const handleAmountReceivedChange = (e) => {
         <tr>
           <th>Item Name</th>
           <th>Qty</th>
-          <th>S Price</th>
+          <th>S selling_price</th>
           <th>Total</th>
         </tr>
       </thead>
@@ -360,8 +324,8 @@ const handleAmountReceivedChange = (e) => {
                   className="cart-quantity-input-new"
                 />
               </td>
-              <td>KSH {item.price.toFixed(2)}</td>
-              <td>KSH {(item.price * item.quantity).toFixed(2)}</td>
+              <td>KSH {item.selling_price.toFixed(2)}</td>
+              <td>KSH {(item.selling_price * item.quantity).toFixed(2)}</td>
               <td>
                 <button onClick={() => handleRemoveFromCart(item.id)} className="cart-remove-button-new">
                   <DeleteIcon />

@@ -42,7 +42,7 @@ const Home = () => {
     }
 
     if (branchId) {
-      fetch(`http://localhost:3000/api/category-product?branch_id=${branchId}`)
+      fetch(`http://102.130.118.213/api/category-product?branch_id=${branchId}`)
         .then((response) => response.json())
         .then((data) => {
           const productsWithTaxRate = data.products.map(product => ({

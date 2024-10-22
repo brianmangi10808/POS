@@ -56,7 +56,7 @@ const Receipt = forwardRef((props, ref) => {
         <ul>
           {receiptData.items?.map((item, index) => (
             <li key={index}>
-              {item.name} - {item.quantity} @ KSH {item.price.toFixed(2)} each
+              {item.name} - {item.quantity} @ KSH {item.selling_price.toFixed(2)} 
             </li>
           ))}
         </ul>

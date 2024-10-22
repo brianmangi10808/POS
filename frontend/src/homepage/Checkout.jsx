@@ -345,7 +345,7 @@ const Checkout = () => {
         </div>
       )}
     </div>
-  );
+  );z
 };
 
 export default Checkout;

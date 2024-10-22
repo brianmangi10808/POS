@@ -28,7 +28,7 @@ function Register() {
 
 
         try {
-            const response = await axios.post('http://localhost:3000/api/signup', data, {
+            const response = await axios.post('http://102.130.118.213/api/signup', data, {
                 headers: {
                     'Content-Type': 'application/json',
                 },

@@ -6,18 +6,10 @@
 
     width: 90%;
     height: 100vh;
-    background-image: url('../assets/back1-5.webp');
-  background-size: cover;
-  background-position: center;
+    background-color: #fff;
    
 }
-/* .product-list-bar{
-   margin-left: 10%;
-background-color: #28a745;
-margin-top: 20px;
 
-
-} */
 .product-list-bar {
     position: relative; 
     width: 70%; 

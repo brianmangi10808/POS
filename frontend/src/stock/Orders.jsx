@@ -14,7 +14,8 @@ const Orders = () => {
     const [product, setProduct] = useState({
         name: '',
         description: '',
-        price: '',
+        buying_price:'',
+        selling_price:'',
         quantity: '',
         category_id: '',
         image: null
@@ -104,7 +105,8 @@ const Orders = () => {
         const formData = new FormData();
         formData.append('name', product.name);
         formData.append('description', product.description);
-        formData.append('price', product.price);
+        formData.append('buying_price', product.buying_price);
+        formData.append('selling_price', product.selling_price);
         formData.append('quantity', product.quantity);
         formData.append('category_id', product.category_id);
         formData.append('sku', sku);
@@ -141,7 +143,8 @@ const Orders = () => {
             setProduct({
                 name: '',
                 description: '',
-                price: '',
+                buying_price:'',
+                selling_price:'',
                 quantity: '',
                 category_id: '',
                 image: null
@@ -165,7 +168,8 @@ const Orders = () => {
         setProduct({
             name: product.name,
             description: product.description,
-            price: product.price,
+            buying_price: product.buying_price,
+            selling_price: product. selling_price,
             quantity: product.quantity,
             category_id: product.category_id,
             image: null
@@ -304,12 +308,24 @@ const Orders = () => {
                         </div>
                         <div className="form-group">
                             
-                            <label htmlFor="price">Price</label>
+                            <label htmlFor="buying_price">buying price</label>
                             <input
-                                id="price"
+                                id="buying_price"
                                 type="number"
-                                name="price"
-                                value={product.price}
+                                name="buying_price"
+                                value={product.buying_price}
+                                onChange={handleProductInputChange}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            
+                            <label htmlFor="selling_price">selling price</label>
+                            <input
+                                id="selling_price"
+                                type="number"
+                                name="selling_price"
+                                value={product.selling_price}
                                 onChange={handleProductInputChange}
                                 required
                             />
