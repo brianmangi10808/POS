@@ -89,7 +89,7 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         // Fetch transaction details
-        const response = await axios.get('http://localhost:3000/api/transaction-details');
+        const response = await axios.get('https://pos-backend-16dc.onrender.com/api/transaction-details');
         const transactions = response.data;
 
         // Aggregate data by customer
@@ -189,7 +189,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Fetch transactions data from API
-    axios.get('http://localhost:3000/api/transaction-details')
+    axios.get('https://pos-backend-16dc.onrender.com/api/transaction-details')
       .then(response => {
         const transactionData = response.data;
 

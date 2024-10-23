@@ -24,8 +24,8 @@ function Movement() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const branchesResponse = await axios.get('http://localhost:3000/api/branches');
-        const categoriesResponse = await axios.get('http://localhost:3000/api/categories');
+        const branchesResponse = await axios.get('https://pos-backend-16dc.onrender.com/api/branches');
+        const categoriesResponse = await axios.get('https://pos-backend-16dc.onrender.com/api/categories');
         setBranches(branchesResponse.data);
         setCategories(categoriesResponse.data);
 
@@ -58,7 +58,7 @@ function Movement() {
   
     if (value.length > 2 && selectedCategory) {
       try {
-        const response = await axios.get('http://localhost:3000/api/prodcat', {
+        const response = await axios.get('https://pos-backend-16dc.onrender.com/api/prodcat', {
           params: {
             productName: value,
             categoryId: selectedCategory,
@@ -104,7 +104,7 @@ function Movement() {
       };
   
       // Transfer the product
-      await axios.post('http://localhost:3000/api/products/transfer', transferData);
+      await axios.post('https://pos-backend-16dc.onrender.com/api/products/transfer', transferData);
       alert('Product transferred successfully!');
   
       // Log the details after successful transfer
@@ -116,7 +116,7 @@ function Movement() {
         detailDate: transferDate
       };
   
-      await axios.post('http://localhost:3000/api/products/details', detailData);
+      await axios.post('https://pos-backend-16dc.onrender.com/api/products/details', detailData);
       alert('Details logged successfully!');
   
       resetForm();

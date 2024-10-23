@@ -9,7 +9,7 @@ function Transfers() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:3000/api/products/details')
+    axios.get('https://pos-backend-16dc.onrender.com/api/products/details')
       .then(response => {
         setDetails(response.data); // This should now contain the data from your MySQL query
         setLoading(false);

@@ -16,7 +16,7 @@ function Category() {
     const data = { tin, bhfId, deviceSerialNo };
 
     try {
-      const response = await fetch('http://localhost:3000/api/initialize-device', {
+      const response = await fetch('https://pos-backend-16dc.onrender.com/api/initialize-device', {
         method: 'POST',
         headers: {
           'Content-type': 'application/json',

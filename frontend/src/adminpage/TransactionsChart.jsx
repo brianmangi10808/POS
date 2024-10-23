@@ -11,7 +11,7 @@ const TransactionsChart = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://localhost:3000/transactions-per-day')
+    axios.get('https://pos-backend-16dc.onrender.com/api/transactions-per-day')
       .then((response) => {
         const data = response.data;
 

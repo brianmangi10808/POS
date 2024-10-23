@@ -24,7 +24,7 @@ const Admin = () => {
     useEffect(() => {
         const fetchSignupData = async () => {
             try {
-                const response = await axios.get('http://102.130.118.213/api/signup-data');
+                const response = await axios.get('https://pos-backend-16dc.onrender.com/api/signup-data');
                 const formattedData = response.data.map(item => ({
                     name: item.date,
                     signups: item.count,

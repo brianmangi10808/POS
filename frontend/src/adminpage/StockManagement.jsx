@@ -9,7 +9,7 @@ const StockManagement = () => {
 
   // Fetch current stock threshold from the backend
   useEffect(() => {
-    axios.get('http://localhost:3000/api/get-stock-threshold')
+    axios.get('https://pos-backend-16dc.onrender.com/api/get-stock-threshold')
       .then((response) => {
         setStockThreshold(response.data.stockThreshold);
       })
@@ -33,7 +33,7 @@ const StockManagement = () => {
       return;
     }
 
-    axios.post('http://localhost:3000/api/update-stock-threshold', { stockThreshold: thresholdValue })
+    axios.post('https://pos-backend-16dc.onrender.com/api/update-stock-threshold', { stockThreshold: thresholdValue })
       .then(() => {
         setApproval('Stock threshold updated successfully.');
         setStockThreshold(thresholdValue);

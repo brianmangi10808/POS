@@ -26,7 +26,7 @@ const Createuser = () => {
         setIsLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:3000/api/signup', { name, email, password, role });
+            const response = await axios.post('https://pos-backend-16dc.onrender.com/api/signup', { name, email, password, role });
             setMessage(response.data.message);
             setName('');
             setEmail('');

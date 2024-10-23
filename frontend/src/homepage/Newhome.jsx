@@ -50,7 +50,7 @@ const Newhome = () => {
     }
 
     if (branchId) {
-      fetch(`http://localhost:3000/api/category-product?branch_id=${branchId}`)
+      fetch(`https://pos-backend-16dc.onrender.com/category-product?branch_id=${branchId}`)
         .then((response) => response.json())
         .then((data) => {
           const productsWithTaxRate = data.products.map(product => ({
@@ -112,7 +112,7 @@ const Newhome = () => {
     }
 
     try {
-      const invoiceResponse = await axios.get('http://localhost:3000/api/invoice-number');
+      const invoiceResponse = await axios.get('https://pos-backend-16dc.onrender.com/api/invoice-number');
       const invoiceNumber = invoiceResponse.data.invoiceNumber;
 
       const itemList = cart.map((item, index) => ({
@@ -136,9 +136,9 @@ const Newhome = () => {
         pmtTyCd: paymentMethod === 'MPESA' ? '01' : '02',
       };
 
-      await axios.post('http://localhost:3000/api/saveTrnsSalesOsdc', invoiceData);
+      await axios.post('https://pos-backend-16dc.onrender.com/api/saveTrnsSalesOsdc', invoiceData);
 
-      const transactionResponse = await axios.post('http://localhost:3000/api/transactions', {
+      const transactionResponse = await axios.post('https://pos-backend-16dc.onrender.com/api/transactions', {
         items: cart.map(item => ({
           productId: item.id,
           sku: item.sku,
@@ -163,7 +163,7 @@ const Newhome = () => {
       setReceiptData(newReceiptData);
       setCart([]);
       setShowModal(false);
-      await axios.post('http://localhost:3000/api/invoice-number/increment');
+      await axios.post('https://pos-backend-16dc.onrender.com/api/invoice-number/increment');
       navigate('/receipt', { state: { receiptData: newReceiptData } });
 
     } catch (error) {

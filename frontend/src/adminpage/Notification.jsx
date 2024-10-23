@@ -10,7 +10,7 @@ function Notification() {
   // Fetch notifications
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/notifications');
+      const response = await axios.get('https://pos-backend-16dc.onrender.com/api/notifications');
       setNotifications(response.data.notifications || []);
       // Mark all fetched notifications as read if necessary
       const notificationIds = response.data.notifications?.map(notification => notification.id) || [];
@@ -30,7 +30,7 @@ function Notification() {
     
     try {
       await Promise.all(notificationIds.map(id => 
-        axios.patch(`http://localhost:3000/api/notifications/${id}/read`)
+        axios.patch(`https://pos-backend-16dc.onrender.com/api/notifications/${id}/read`)
       ));
       setNotifications(prevNotifications =>
         prevNotifications.map(notification =>
@@ -47,7 +47,7 @@ function Notification() {
   // Handle notification click to mark as read
   const handleNotificationClick = async (id) => {
     try {
-      await axios.patch(`http://localhost:3000/api/notifications/${id}/read`);
+      await axios.patch(`https://pos-backend-16dc.onrender.com/api/notifications/${id}/read`);
       setNotifications(prevNotifications =>
         prevNotifications.map(notification =>
           notification.id === id

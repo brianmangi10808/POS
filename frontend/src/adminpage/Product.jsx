@@ -4,8 +4,8 @@ import "./Product.css";
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 
 // URL of your API
-const API_URL = 'http://localhost:3000/api/products';
-const CATEGORY_API_URL = 'http://localhost:3000/api/categories';
+const API_URL = 'https://pos-backend-16dc.onrender.com/api/products';
+const CATEGORY_API_URL = 'https://pos-backend-16dc.onrender.com/api/categories';
 
 const Product = () => {
     const [products, setProducts] = useState([]);
@@ -54,29 +54,7 @@ const Product = () => {
         }));
     };
 
-    // const handleBarcodeScan = async (e) => {
-    //     const scannedBarcode = e.target.value;
-
-    //     if (scannedBarcode) {
-    //         try {
-    //             const response = await axios.get(`${API_URL}/barcode/${scannedBarcode}`);
-    //             const productData = response.data;
-
-    //             setProduct({
-    //                 name: productData.name,
-    //                 description: productData.description,
-    //                 price: productData.price,
-    //                 quantity: productData.quantity,
-    //                 category_id: productData.category_id,
-    //                 barcode: productData.barcode,
-    //                 image: null
-    //             });
-    //             setEditingProductId(productData.id);
-    //         } catch (err) {
-    //             setError('Product not found');
-    //         }
-    //     }
-    // };
+  
 
     const generateSKU = () => {
         if (!product.name) return '';

@@ -15,8 +15,8 @@ function Users() {
         const fetchData = async () => {
             try {
                 const [usersResponse, branchesResponse] = await Promise.all([
-                    axios.get('http://localhost:3000/api/users-with-branches'),
-                    axios.get('http://localhost:3000/api/branches')
+                    axios.get('https://pos-backend-16dc.onrender.com/api/users-with-branches'),
+                    axios.get('https://pos-backend-16dc.onrender.com/api/branches')
                 ]);
                 console.log('Users:', usersResponse.data); // Debugging line
                 setUsers(usersResponse.data);
@@ -39,7 +39,7 @@ function Users() {
             return;
         }
 
-        axios.put(`http://localhost:3000/api/users/${selectedUser}/assign-branch`, { branch_id: selectedBranch })
+        axios.put(`https://pos-backend-16dc.onrender.com/api/users/${selectedUser}/assign-branch`, { branch_id: selectedBranch })
             .then(response => alert(response.data.message))
             .catch(error => alert(error.response.data.error));
     };

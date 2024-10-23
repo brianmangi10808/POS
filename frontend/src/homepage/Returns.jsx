@@ -46,8 +46,8 @@ function Returns() {
 
     try {
         const url = transactionType === 'sale'
-            ? 'http://localhost:3000/api/update-stock'
-            : 'http://localhost:3000/api/return-stock';
+            ? 'https://pos-backend-16dc.onrender.com/api/update-stock'
+            : 'https://pos-backend-16dc.onrender.com/api/return-stock';
 
         const response = await axios.post(url, payload);
         alert(response.data.message);

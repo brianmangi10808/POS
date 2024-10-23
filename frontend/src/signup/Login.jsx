@@ -28,7 +28,7 @@ function Login() {
     setUsername(username);
 
     try {
-      const response = await axios.post('http://102.130.118.213/api/login', data, {
+      const response = await axios.post('https://pos-backend-16dc.onrender.com/api/login', data, {
         headers: { 'Content-Type': 'application/json' },
       });
 
@@ -37,7 +37,7 @@ function Login() {
         if (user && user.branch_id) {
           setBranchId(user.branch_id);
           setProducts(products);
-          const navigateTo = user.role === 'admin' ? '/admin' : '/checkout';
+          const navigateTo = user.role === 'admin' ? '/admin' : '/newhome';
           navigate(navigateTo);
         } else {
           setError('User data is missing');

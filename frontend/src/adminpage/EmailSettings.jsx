@@ -13,7 +13,7 @@ const EmailSettings = () => {
 
   // Fetch email settings when the component loads
   useEffect(() => {
-    axios.get('http://localhost:3000/api/email-settings')
+    axios.get('https://pos-backend-16dc.onrender.com/api/email-settings')
       .then((response) => {
         setEmailSettings(response.data);
       })
@@ -34,7 +34,7 @@ const EmailSettings = () => {
   // Handle form submission to update email settings
   const handleEmailSubmit = (e) => {
     e.preventDefault();
-    axios.post('http://localhost:3000/api/email-settings', emailSettings)
+    axios.post('https://pos-backend-16dc.onrender.com/api/email-settings', emailSettings)
       .then((response) => {
         setEmailMessage(response.data.message);
       })

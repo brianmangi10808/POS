@@ -4,8 +4,8 @@ import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import './Order.css';
 
 // URLs of your APIs
-const CATEGORY_API_URL = 'http://localhost:3000/api/categories';
-const PRODUCT_API_URL = 'http://localhost:3000/api/products';
+const CATEGORY_API_URL = 'https://pos-backend-16dc.onrender.com/api/categories';
+const PRODUCT_API_URL = 'https://pos-backend-16dc.onrender.com/api/products';
 
 const Orders = () => {
     const [categories, setCategories] = useState([]);

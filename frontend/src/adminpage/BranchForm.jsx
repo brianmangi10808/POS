@@ -5,8 +5,8 @@ import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { BsFilterSquareFill } from "react-icons/bs";
 
 // Define your API URLs
-const BRANCH_API_URL = 'http://localhost:3000/api/branches';
-const PRODUCT_API_URL = 'http://localhost:3000/api/branch-remaining';
+const BRANCH_API_URL = 'https://pos-backend-16dc.onrender.com/api/branches';
+const PRODUCT_API_URL = 'https://pos-backend-16dc.onrender.com/api/branch-remaining';
 
 const BranchForm = () => {
     const [branches, setBranches] = useState([]);

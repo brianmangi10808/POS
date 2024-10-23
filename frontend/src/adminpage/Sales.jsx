@@ -22,7 +22,7 @@ const Sales = () => {
     // Function to fetch transactions
     const fetchTransactions = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/api/transaction-details');
+            const response = await axios.get('https://pos-backend-16dc.onrender.com/api/transaction-details');
             console.log('Transaction Data:', response.data);
             setTransactions(response.data || []);
             setFilteredTransactions(response.data || []);
