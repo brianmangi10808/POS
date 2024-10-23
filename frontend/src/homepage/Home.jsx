@@ -1,19 +1,21 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { UserContext } from '../signup/UserContext';
 import axios from 'axios';
 import { DeleteIcon, CloseIcon } from '@chakra-ui/icons';
+
 import './Home.css';
+
 import profile from '../assets/profile.jpg';
-import { useReactToPrint } from 'react-to-print';
-import Receipt from './Receipt';
 import { v4 as uuidv4 } from 'uuid';
+import { useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
+
 
 
 const Home = () => {
-  const { username } = useContext(UserContext);
-  const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
-  const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState('');
@@ -25,39 +27,45 @@ const Home = () => {
   const [imageUrls, setImageUrls] = useState({});
   const [amountReceived, setAmountReceived] = useState('');
   const [change, setChange] = useState('');
-  const [kraDetails, setKraDetails] = useState(null); // New state to store kraDetails
-  const [showReceiptModal, setShowReceiptModal] = useState(false); // State to manage receipt modal
+  const [selectedCategory, setSelectedCategory] = useState(null); // Initialize selectedCategory
+  const [receiptData, setReceiptData] = useState(null);
+  const { branchId, setBranchId, products, setProducts, username } = useContext(UserContext);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const receiptRef = useRef();
-
-  const handlePrint = useReactToPrint({
-    content: () => receiptRef.current,
-    documentTitle: 'KRA-Receipt',
-  });
-
-  const generateReceiptNumber = () => {
-    return `RCPT-${uuidv4()}`; // Generate a unique receipt number
-  };
+  
+  
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/api/categories');
-        setCategories(response.data);
+    if (location.state?.branchId && branchId === null) {
+      setBranchId(location.state.branchId);
+    }
 
-        if (response.data.length > 0) {
-          const firstCategory = response.data[0];
-          setActiveCategory(firstCategory.id);
-          fetchProducts(firstCategory.id);
-        }
-      } catch (err) {
-        setError('No products found for the categories');
-        console.error(err);
-      }
-    };
+    if (branchId) {
+      fetch(`http://102.130.118.213/api/category-product?branch_id=${branchId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          const productsWithTaxRate = data.products.map(product => ({
+            ...product,
+            taxRate: product.tax_rate // Access the tax_rate field
+          }));
+          setProducts(productsWithTaxRate);
+        })
+        .catch((error) => console.error('Error fetching products:', error));
+    }
+    
+  }, [branchId, location.state?.branchId, setBranchId, setProducts]);
 
-    fetchCategories();
-  }, []);
+
+  const categories = [...new Set(products.map((product) => product.category_name))];
+
+  const filteredProducts = searchQuery
+    ? products.filter(product => product.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : selectedCategory
+    ? products.filter((product) => product.category_name === selectedCategory)
+    : products;
+
+  // The rest of your code continues...
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -72,7 +80,7 @@ const Home = () => {
           newImageUrls[product.id] = imageUrl;
         } catch (error) {
           console.error(`Error fetching image for product ${product.id}:`, error);
-          newImageUrls[product.id] = profile; // Fallback image
+          newImageUrls[product.id] = profile;
         }
       }
       setImageUrls(newImageUrls);
@@ -82,17 +90,6 @@ const Home = () => {
       fetchImages();
     }
   }, [products]);
-
-  const fetchProducts = async (categoryId) => {
-    try {
-      const response = await axios.get(`http://localhost:3000/api/categories/${categoryId}/products`);
-      setProducts(response.data);
-      setActiveCategory(categoryId);
-    } catch (err) {
-      setError('No products found for this category');
-      console.error(err);
-    }
-  };
 
   const handlePaymentClick = (method) => {
     setPaymentMethod(method);
@@ -104,97 +101,151 @@ const Home = () => {
       setShowModalCash(true);
     }
   };
+  
 
-  const handleModalSubmit = async () => {
-    const receiptNumber = generateReceiptNumber();
-    let formattedPhoneNumber = phoneNumber.trim();
-
-    if (formattedPhoneNumber.startsWith('0')) {
+const handleModalSubmit = async () => {
+  let formattedPhoneNumber = phoneNumber.trim();
+  if (formattedPhoneNumber.startsWith('0')) {
       formattedPhoneNumber = `254${formattedPhoneNumber.substring(1)}`;
-    }
+  }
+  const totalAmount = calculateTotal();
 
-    const totalAmount = calculateTotal(); // Ensure this value is correctly set
+  const invalidItems = cart.filter(item => !item.sku || !item.quantity);
+  if (invalidItems.length > 0) {
+      setError('Each item must have a SKU and quantity');
+      return;
+  }
 
-    try {
-      const transactionResponse = await axios.post('http://localhost:3000/api/transactions', {
-        customerName: username,
-        items: cart.map(item => ({
-          productId: item.id,
-          sku: item.sku,
-          quantity: item.quantity
-        })),
-        totalAmount: totalAmount,
-        paymentMethod: paymentMethod
-      });
-
-      const transactionId = transactionResponse.data.transactionId;
-
-      if (paymentMethod === 'MPESA') {
-        const response = await fetch('http://localhost:3000/api/mpesa/pay', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            amount: totalAmount,
-            phoneNumber: formattedPhoneNumber,
-            accountReference: 'Swiftel Fiber',
-            transactionId: transactionId
-          })
-        });
-
-        const result = await response.text();
-        alert(result);
-      } else if (paymentMethod === 'CASH') {
-        alert(`Cash payment of KSH ${totalAmount} received successfully!`);
-      }
-
-      await axios.post('http://localhost:3000/api/update-stock', {
-        items: cart.map(item => ({
-          productId: item.id,
-          sku: item.sku,
-          quantity: item.quantity
-        })),
-        totalAmount: totalAmount
-      });
-
-      // Prepare KRA details for receipt
-      const kraDetails = {
-        taxpayerName: 'SWIFTEL FIBER',
-        pin: 'P051402944X',
-        address: 'KASARANI ,mwiki',
-        scuId: 'KRA1234567890',
-        signature: 'ABCD1234EFGH5678',
-        receiptNumber: receiptNumber, // Use the generated receipt number
+  try {
+      // Prepare transaction data
+      const transactionData = {
+          items: cart.map(item => ({
+              productId: item.id,
+              sku: item.sku,
+              quantity: item.quantity
+          })),
+          totalAmount: totalAmount,
+          paymentMethod: paymentMethod // Ensure this is correctly set
       };
 
-      setKraDetails(kraDetails); // Store kraDetails in state
-      setShowReceiptModal(true); // Show the receipt modal
+      if (username) {
+          transactionData.customerName = username; // Include if username is available
+      }
 
-      // Clear the cart and close modals after printing
+      console.log('Transaction Data:', transactionData); // Log transaction data
+
+      // Make API request for transactions
+      const transactionResponse = await axios.post('http://localhost:3000/api/transactions', transactionData);
+      const transactionId = transactionResponse.data.transactionId;
+
+
+console.log('Recorded Transaction IDs:', transactionId);
+
+
+      // Handle MPESA or Cash payments
+      if (paymentMethod === 'MPESA') {
+          const response = await fetch('http://localhost:3000/api/mpesa/pay', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  amount: totalAmount,
+                  phoneNumber: formattedPhoneNumber,
+                  accountReference: 'Swiftel Fiber',
+                  transactionId: transactionId
+              })
+          });
+
+          const result = await response.text();
+          alert(result);
+      } else if (paymentMethod === 'CASH') {
+          alert(`Cash payment of KSH ${totalAmount} received successfully!`);
+      }
+
+      const calculateTotalTax = () => {
+        return cart.reduce((totalTax, item) => {
+          const taxAmount = Number(item.price) * item.quantity * Number(item.tax_rate);
+          return totalTax + taxAmount;
+        }, 0).toFixed(2);
+      };
       
+
+      // Prepare stock update data
+      const stockUpdateData = {
+          branchId: branchId, // Ensure branchId is correctly set
+          items: cart.map(item => ({
+              productId: item.id,
+              sku: item.sku,
+              quantity: item.quantity
+          })),
+          totalAmount: totalAmount,
+          paymentMethod: paymentMethod // Ensure this is included if required by the server
+      };
+
+      console.log('Stock Update Data:', stockUpdateData); // Log stock update data
+
+      // Make API request to update stock
+      const stockResponse = await axios.post('http://localhost:3000/api/update-stock', stockUpdateData);
+
+      // Check stock update response if needed
+      console.log('Stock Update Response:', stockResponse.data);
+       
+      // Prepare receipt data
+      const newReceiptData = {
+        businessName: 'My Electronics Shop',
+        cashierName: username,
+        transactionId: `TX-${new Date().toISOString().replace(/[-:.]/g, '').slice(0, 14)}`,
+        items: cart,
+        totalAmount: calculateTotal(),
+        totalTax: calculateTotalTax(),
+        paymentMethod,
+        date: new Date().toLocaleString(),
+      };
+
+      // Set the receiptData
+      setReceiptData(newReceiptData);
+
+      // Log receiptData after setting it
+      console.log('Receipt Data:', newReceiptData);
+
+      // Clear the cart and close modals
+      setCart([]);
       setShowModal(false);
       setShowModalCash(false);
-    } catch (error) {
+
+      // Navigate to the receipt page with the updated data
+      navigate('/receipt', { state: { receiptData: newReceiptData } });
+
+  } catch (error) {
       setError('Error during checkout');
       console.error('Error during checkout:', error.response ? error.response.data : error.message);
-    }
-    //  setCart([]);
-  };
+  }
+};
+
+  
+  
 
   const handleAddToCart = (product) => {
-    const existingProduct = cart.find(item => item.id === product.id);
+    const existingProduct = cart.find((item) => item.id === product.id);
     if (existingProduct) {
-      setCart(cart.map(item =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      ));
+      setCart(
+        cart.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      );
     } else {
-      setCart([...cart, { ...product, quantity: 1, sku: product.sku, price: product.price }]);
+      setCart([
+        ...cart,
+        {
+          ...product,
+          quantity: 1,
+          sku: product.sku || 'default-sku',
+          price: Number(product.price)
+        }
+      ]);
     }
   };
-  
 
   const handleRemoveFromCart = (productId) => {
     setCart(cart.filter(item => item.id !== productId));
@@ -209,206 +260,152 @@ const Home = () => {
   };
 
   const calculateTotal = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+    return cart.reduce((total, item) => {
+      const priceWithoutTax = Number(item.price) * item.quantity;
+      const taxAmount = priceWithoutTax * Number(item.tax_rate); // Assuming tax_rate is in decimal form (e.g., 0.16 for 16%)
+      return total + priceWithoutTax + taxAmount;
+    }, 0).toFixed(2);
   };
-
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+  
   const handleAmountReceivedChange = (e) => {
-    const receivedAmount = parseFloat(e.target.value) || '';
+    const receivedAmount = parseFloat(e.target.value) || 0;
     setAmountReceived(receivedAmount);
-    setChange(receivedAmount - totalAmount);
+    const newChange = (receivedAmount - totalAmount).toFixed(2);
+    setChange(isNaN(newChange) ? 0 : newChange);
   };
 
   return (
-    <div className="home-container">
-      <div className="top-container">
-        <div className="username-display">
+    <div className="home-containers-bar">
+      <div className="top-container-bar">
+        <div className="username-display-bar">
           <h4>Welcome, {username}</h4>
         </div>
-        <div className="search-inputs">
+        <div className="search-inputs-bar">
           <input
             type="search"
             placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+
+        </div>
+        <div className="logout-bar">
+        <NavLink to='/'><button className="log-out-nav-bar">LOG OUT</button></NavLink>
         </div>
       </div>
-      <div className="body-home">
-        <div className="sidebar-home">
+
+      <div className="body-home-bar">
+        <div className="sidebar-home-bar">
           <h2>Categories</h2>
           <ul>
             {categories.map((category) => (
-              <li
-                key={category.id}
-                onClick={() => fetchProducts(category.id)}
-                className={activeCategory === category.id ? 'active' : ''}
-              >
-                {category.name}
+              <li key={category} onClick={() => setSelectedCategory(category)}>
+                {category}
               </li>
             ))}
           </ul>
-          <h3><NavLink to='/admin/branchform' className="nav-item"> <LuStore /> STORES</NavLink></h3>
-        </div>
+         
+         
+               </div>
+          
+        <div className="product-list-bar">
+        {/* <div className="column-header-product">
+          <div>ITEM</div>
+          <div>PRICE</div>
+         </div> */}
+          {error && <p className="error">{error}</p>}
+          {filteredProducts.map((product) => (
      
-     
-        <div className="product-list">
-  {error && <p className="error">{error}</p>}
-  {activeCategory === null ? (
-    <p>Please select a category</p>
-  ) : (
-    <div className="product-grid">
-      {filteredProducts.map((product) => (
-        <div className="product-details" key={product.id} onClick={() => handleAddToCart(product)}>
-          <div className="protruding-image-container">
-            <img
-              src={imageUrls[product.id] || profile}
-              alt="Product"
-              className="protruding-image"
-            />
-          </div>
-          <div className="lower-details">
-            <h3>{product.name}</h3>
-            <span className="item-price">KSH {Number(product.price || 0).toFixed(2)}</span>
+         <div className="product-card-bar" key={product.id}>
 
-            <div className="btn-container">
-              <button
-                className="checkout-product-btn"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent the parent div's onClick from triggering
-                  handleAddToCart(product);
-                }}
-              >
-                Add to Cart
-              </button>
-            </div>
+         <button 
+           onClick={() => handleAddToCart(product)} 
+           className="product-card-button-bar"
+           style={{ all: 'unset', cursor: 'pointer', width: '100%', height: '100%' }}
+         >  
+       
+         <div className="column-product">
+           <div>{product.description}</div>
+           <div>{Number(product.price).toFixed(2)}</div>
           </div>
+           {/* <p>{product.description}</p>
+           <p>Price: KSH {Number(product.price).toFixed(2)}</p>
+           <p style={{ color: 'green', fontSize: '16px', fontWeight: '500' }}>ADD</p> */}
+         </button>
+       </div>
+       
+          ))}
         </div>
-      ))}
-    </div>
-  )}
-</div>
 
-
-        <div className="checkout-form">
-          <div className="cart-summary">
-            <h3>Cart Items:</h3>
-            {cart.length === 0 ? (
-              <p className="empty-cart">Your cart is empty.</p>
-            ) : (
-              <ul className="cart-items">
+        <div className="cart-container-bar">
+          <h2>Cart</h2>
+          {cart.length > 0 ? (
+            <div>
+              <ul>
                 {cart.map((item) => (
-  <div key={item.id} className="cart-item">
-    <div className="item-details">
-      <span className="item-name">{item.name}</span>
-      <span className="item-price">KSH {Number(item.price || 0).toFixed(2)}</span>
-    </div>
-    <div className="item-actions">
-      <input
-        type="number"
-        min="1"
-        value={item.quantity}
-        onChange={(e) => handleUpdateQuantity(item.id, parseInt(e.target.value))}
-        className="quantity-input"
-      />
-      <button onClick={() => handleRemoveFromCart(item.id)} className="delete-btn">
-        <DeleteIcon boxSize={17} />
-      </button>
-    </div>
-  </div>
-))}
+                  <li key={item.id}>
+                   <p>
+         {item.name} - KSH {item.price.toFixed(2)} x {item.quantity} 
+           <br />
+          Tax: KSH {(Number(item.price) * item.quantity * Number(item.tax_rate)).toFixed(2)}
+       </p>
 
+                    <button onClick={() => handleRemoveFromCart(item.id)}>
+                      <DeleteIcon />
+                    </button>
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => handleUpdateQuantity(item.id, parseInt(e.target.value))}
+                    />
+                  </li>
+                ))}
               </ul>
-            )}
-            <h3 className="total-price">Total: KSH {calculateTotal()}</h3>
-            <div className="cash-mpesa-layout">
-              <button
-                className={`complete-purchase-btn ${paymentMethod === 'MPESA' ? 'active' : ''}`}
-                onClick={() => handlePaymentClick('MPESA')}
-              >
-                MPESA
-              </button>
-              <button
-                className={`complete-purchase-btn ${paymentMethod === 'CASH' ? 'active' : ''}`}
-                onClick={() => handlePaymentClick('CASH')}
-              >
-                CASH
-              </button>
-              <button
-                className={`complete-purchase-btn ${paymentMethod === 'MULTIPLE' ? 'active' : ''}`}
-                onClick={() => handlePaymentClick('MULTIPLE')}
-              >
-                MULTIPLE PAY
-              </button>
+              <p>Total: KSH {calculateTotal()}</p>
+              <div className="payment-button-bar">
+                <button style={{ backgroundColor: '#28a745' }} onClick={() => handlePaymentClick('MPESA')}>
+                  Pay with MPESA
+                </button>
+                <button style={{ backgroundColor: '#ffc107' }} onClick={() => handlePaymentClick('CASH')}>
+                  Pay with CASH
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <p>Your cart is empty</p>
+          )}
+             <NavLink to='/returns' className="nav-return">  RETURNS</NavLink>
         </div>
       </div>
-
-      {/* Receipt Modal */}
-      {showReceiptModal && (
-  <div className="modal-overlay">
-    <div className="modal-content">
-      <Receipt
-        ref={receiptRef}
-        transactionId="TX123456" // Pass the correct transaction ID here
-        customerName={username}
-        cart={cart}
-        totalAmount={totalAmount}
-        paymentMethod={paymentMethod}
-        kraDetails={kraDetails}
-      />
-      <button onClick={() => setShowReceiptModal(false)}><CloseIcon /></button>
-      <button onClick={handlePrint}>Print Receipt</button>
-    </div>
-  </div>
-)}
-
-
-
+     
+      {/* MPESA Payment Modal */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Complete MPESA Payment</h2>
-            <h3>Total : KSH {totalAmount}</h3>
-            <label className='amount_cash' htmlFor="phoneNumber">Phone Number:</label>
-            <input
-              type="tel"
-              id="phoneNumber"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-            />
-            <button onClick={handleModalSubmit}>Finalize Payment</button>
-            <button onClick={() => setShowModal(false)}><CloseIcon /></button>
-          </div>
+        <div className="modal-bar">
+          <h2>MPESA Payment</h2>
+          <input
+            type="text"
+            placeholder="Enter Phone Number"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+          />
+          <button onClick={handleModalSubmit}>Submit Payment</button>
+          <button onClick={() => setShowModal(false)}><CloseIcon /></button>
         </div>
       )}
 
+      {/* Cash Payment Modal */}
       {showModalCash && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Complete Cash Payment</h2>
-            <h3>Total : KSH {totalAmount}</h3>
-            <label className='amount_cash' htmlFor="amountReceived">Amount Received:</label>
-            <input
-              type="number"
-              id="amountReceived"
-              value={amountReceived}
-              onChange={handleAmountReceivedChange}
-            />
-            <label className='amount_cash' htmlFor="change">Change:</label>
-            <input
-              type="text"
-              id="change"
-              value={change}
-              readOnly
-            />
-            <button onClick={handleModalSubmit}>Finalize Payment</button>
-            <button onClick={() => setShowModalCash(false)}><CloseIcon /></button>
-          </div>
+        <div className="modal-bar">
+          <h2>CASH Payment</h2>
+          <input
+            type="number"
+            placeholder="Amount Received"
+            value={amountReceived}
+            onChange={handleAmountReceivedChange}
+          />
+          <p>Change: KSH {change ? Number(change).toFixed(2) : '0.00'}</p>
+          <button onClick={handleModalSubmit}>Submit Payment</button>
+          <button onClick={() => setShowModalCash(false)}><CloseIcon /></button>
         </div>
       )}
     </div>

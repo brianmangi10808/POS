@@ -1,67 +1,77 @@
-import React from 'react';
+import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useLocation } from 'react-router-dom';
+import JsBarcode from 'jsbarcode';
+import './Receipt.css'; // Assuming you have your styles in this file
 
-const Receipt = React.forwardRef(({ transactionId, customerName, cart, totalAmount, paymentMethod, kraDetails }, ref) => {
-  const currentDateTime = new Date().toLocaleString();
+// Using forwardRef to expose the print functionality to a parent component
+const Receipt = forwardRef((props, ref) => {
+  const location = useLocation();
+  const receiptData = location.state?.receiptData;
+
+  const receiptRef = useRef(); // Reference to the receipt content
+
+  useEffect(() => {
+    if (receiptData?.transactionId) {
+      JsBarcode("#barcode", receiptData.transactionId, {
+        format: "CODE128",
+        lineColor: "#000",
+        width: 2,
+        height: 40,
+        displayValue: true,
+      });
+    }
+  }, [receiptData]);
+
+  // Expose the handlePrint function to the parent component
+  useImperativeHandle(ref, () => ({
+    handlePrint() {
+      window.print(); // Triggers the print dialog
+    }
+  }));
+
+  if (!receiptData) {
+    return <div>No receipt data available</div>;
+  }
 
   return (
-    <div ref={ref} className="receipt">
-      <div className="header">
-        <h2>{kraDetails.taxpayerName}</h2>
-        <p>{kraDetails.address}</p>
-        <p>PIN: {kraDetails.pin}</p>
-        <h3>TAX INVOICE</h3>
-        <p>Welcome to our shop</p>
-        <p>Buyer PIN: {kraDetails.buyerPin || "N/A"}</p>
-      </div>
-
-      <div className="bodyz">
-        <table className="items-table">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Qty</th>
-              <th>Unit Price</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cart.length > 0 ? (
-              cart.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.name}</td>
-                  <td>{item.quantity}</td>
-                  <td>{Number(item.price || 0).toFixed(2)}</td>
-                  <td>{(Number(item.price || 0) * item.quantity).toFixed(2)}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" style={{ textAlign: 'center' }}>No items in cart</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-        <hr />
-        <div className="summary">
-          <p>Total BEFORE DISCOUNT: KSH {Number(totalAmount || 0).toFixed(2)}</p>
-          <p>Total DISCOUNT AWARDED: KSH (0.00)</p> {/* Adjust discount as needed */}
-          <p>SUB TOTAL: KSH {Number(totalAmount || 0).toFixed(2)}</p>
-          <p>VAT: KSH 0.00</p> {/* Update VAT calculation */}
-          <h4>TOTAL: KSH {Number(totalAmount || 0).toFixed(2)}</h4>
-          <p>Payment Method: {paymentMethod}</p>
-          <p>ITEMS NUMBER: {cart.length}</p>
+    <div className="receipt-container">
+      {/* Receipt Content */}
+      <div ref={receiptRef} className="receipt-body">
+        <div className="receipt-header">
+          <h1>Sales Receipt</h1>
         </div>
-      </div>
-
-      <div className="footer">
-        <p>Date: {currentDateTime}</p>
-        <p>SCU ID: {kraDetails.scuId}</p>
-        <p>CU INVOICE No.: {kraDetails.scuId}/{transactionId}</p>
-        <p>Receipt Signature: {kraDetails.signature}</p>
-        <div className="qr-code">
-          <img src="https://via.placeholder.com/100" alt="QR Code" /> {/* Placeholder for QR Code */}
+        <div className="date-transaction">
+          <div><p>{receiptData.date}</p></div>
+          <div><p><strong>Transaction ID:</strong> {receiptData.transactionId}</p></div>
         </div>
-        <p>Receipt Number: {kraDetails.receiptNumber}</p>
+        <div className="company-name">
+          <div><h4>{receiptData.businessName}</h4></div>
+          <div><p>0729712952</p></div>
+        </div>
+        
+        <p><strong>Cashier Name:</strong> {receiptData.cashierName}</p>
+        <p><strong>Payment Method:</strong> {receiptData.paymentMethod}</p>
+       
+        <h3>Items Purchased</h3>
+        <ul>
+          {receiptData.items?.map((item, index) => (
+            <li key={index}>
+              {item.name} - {item.quantity} @ KSH {item.selling_price.toFixed(2)} 
+            </li>
+          ))}
+        </ul>
+        
+        <div className="tax-discount">
+          <div><strong>Local Sales Tax:</strong> KSH {receiptData.totalTax}</div>
+        </div>
+
+        <h4>Total: KSH {receiptData.totalAmount}</h4> 
+      </div>
+      
+      <div className="receipt-footer">
+        <h2>Barcode</h2>
+        {/* Barcode for the transaction */}
+        <svg id="barcode"></svg>
       </div>
     </div>
   );

@@ -9,6 +9,8 @@ import { FaUsers } from "react-icons/fa6";
 import { FcSalesPerformance } from "react-icons/fc";
 import { MdDashboardCustomize } from "react-icons/md";
 import { IoNotificationsSharp } from "react-icons/io5";
+import { IoSettingsSharp } from "react-icons/io5";
+
 
 import { UserContext } from '../signup/UserContext';
 import { NavLink, Outlet } from 'react-router-dom';
@@ -22,7 +24,7 @@ const Admin = () => {
     useEffect(() => {
         const fetchSignupData = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/api/signup-data');
+                const response = await axios.get('http://102.130.118.213/api/signup-data');
                 const formattedData = response.data.map(item => ({
                     name: item.date,
                     signups: item.count,
@@ -50,13 +52,17 @@ const Admin = () => {
         <ul className="nav-links">
             <li><NavLink to='/admin/dashboard' className="nav-item"> <MdDashboardCustomize /> DASHBOARD</NavLink></li>
             <li><NavLink to='/admin/sales' className="nav-item"> <FcSalesPerformance /> SALES</NavLink></li>
-            <li><NavLink to='/admin/category' className="nav-item">CATEGORY</NavLink></li>
+           
             <li><NavLink to='/admin/product' className="nav-item"> PRODUCTS</NavLink></li>
             <li><NavLink to='/admin/users' className="nav-item"> <FaUsers /> USERS</NavLink></li>
             <li><NavLink to='/admin/customer' className="nav-item"> <RiCustomerService2Fill />  CUSTOMER</NavLink></li>
             <li><NavLink to='/admin/inventory' className="nav-item"><MdOutlineInventory /> STOCK</NavLink></li>
             <li><NavLink to='/admin/branchform' className="nav-item"> <LuStore /> STORES</NavLink></li>
-            <li><NavLink to='/admin/notification' className="nav-item notification"> <IoNotificationsSharp /> NOTIFICATIONS</NavLink></li>
+            <ul className='notification'> 
+            <li><NavLink to='/admin/notification' className="nav-item"> <IoNotificationsSharp /> NOTIFICATIONS</NavLink></li>
+            <li><NavLink to='/admin/category' className="nav-item "><IoSettingsSharp /> SETINGS</NavLink></li>
+            </ul>
+          
         </ul>
     </nav>
     <div className="content">

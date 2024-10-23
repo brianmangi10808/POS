@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
+
 router.get('/notifications', (req, res) => {
     // Query to join notifications with products and branches tables
     const query = `
@@ -81,8 +82,6 @@ router.get('/branch-remaining', (req, res) => {
         });
     });
 });
-
-
 
 
 module.exports = router;

@@ -2,18 +2,53 @@ const express = require('express');
 const router = express.Router();
 const async = require('async');
 const db = require('../db');
+const nodemailer = require('nodemailer');
 
 // Endpoint to update stock
 const stockThreshold = 9; // Admin-defined threshold for low stock, can be dynamic
 
 // Helper function to create a notification
+// Nodemailer transporter setup
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'brianmwangi10808@gmail.com', // Your email
+        pass: 'trprfvtdjrvvnyhp' // Your Gmail app password
+    }
+});
+
+// Helper function to create a notification and send email
 const createNotification = (productId, branchId, message, callback) => {
     const notificationQuery = `
         INSERT INTO notifications (product_id, branch_id, message) 
         VALUES (?, ?, ?)
     `;
-    db.query(notificationQuery, [productId, branchId, message], callback);
+    db.query(notificationQuery, [productId, branchId, message], (err) => {
+        if (err) {
+            return callback(err);
+        }
+
+        // Email options
+        const mailOptions = {
+            from: 'brianmwangi10808@gmail.com',
+            to: 'petermwangi10808@gmail.com', // Change to the desired recipient
+            subject: 'Low Stock Alert',
+            text: message
+        };
+
+        // Send email
+        transporter.sendMail(mailOptions, (emailErr, info) => {
+            if (emailErr) {
+                console.error('Error sending email:', emailErr);
+                return callback(emailErr);
+            } else {
+                console.log('Email sent: ' + info.response);
+                callback(null); // Success
+            }
+        });
+    });
 };
+
 
 router.post('/update-stock', (req, res) => {
     const { items, totalAmount, branchId, customerName, paymentMethod } = req.body;
@@ -126,7 +161,7 @@ router.post('/update-stock', (req, res) => {
 
                             // Check if stock is below the threshold
                             if (newQuantity <= stockThreshold) {
-                                const lowStockMessage = `Stock for product ${info.product_name} is low (Remaining: ${newQuantity}).`;
+                                const lowStockMessage = `HELLO STOCK LEVER FOR PRODUCT  ${info.product_name} IN YOUR STORE IS LOW  (Remaining: ${newQuantity}).`;
                                 
                                 // Create a low stock notification
                                 createNotification(productId, branchId, lowStockMessage, (notificationErr) => {
@@ -204,13 +239,18 @@ router.post('/transactions', (req, res) => {
             VALUES (?, ?, NOW(), ?, ?, ?)
         `;
 
+        // Initialize an array to hold promises for inserted transaction IDs
+        const transactionIds = [];
+
         const transactionPromises = items.map(item => {
             return new Promise((resolve, reject) => {
                 db.query(insertTransactionQuery, [item.sku, item.quantity, validatedCustomerName, totalAmount, paymentMethod], (err, results) => {
                     if (err) {
                         return reject(err);
                     }
-                    resolve(results);
+                    // Store the ID of the newly inserted transaction
+                    transactionIds.push(results.insertId);
+                    resolve();
                 });
             });
         });
@@ -224,7 +264,8 @@ router.post('/transactions', (req, res) => {
                             return res.status(500).json({ error: 'Failed to commit transaction' });
                         });
                     }
-                    res.status(201).json({ message: 'Transactions recorded successfully' });
+                    // Return the IDs of the recorded transactions
+                    res.status(201).json({ message: 'Transactions recorded successfully', transactionIds });
                 });
             })
             .catch(insertErr => {
