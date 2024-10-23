@@ -6,12 +6,14 @@ const sharp = require('sharp');
 const multer = require('multer');
 
 // Configure multer for file upload
-const storage = multer.memoryStorage(); // Store files in memory
+const storage = multer.memoryStorage(); 
 const upload = multer({ storage });
+const axios = require('axios');
 
 // Create Product
+
 router.post('/products', upload.single('image'), async (req, res) => {
-    const { barcode, name, description, price, quantity, category_id, sku } = req.body;
+    const { name, description, buying_price, selling_price, quantity, category_id, sku } = req.body;
     let image = null;
     let image_type = 'image/jpeg'; // Store the image type as JPEG
 
@@ -24,16 +26,12 @@ router.post('/products', upload.single('image'), async (req, res) => {
         }
     }
 
-    if (!barcode || !name || !price || !quantity || !category_id || !sku) {
-        return res.status(400).json({ error: 'Barcode, name, SKU, price, quantity, and category_id are required' });
+    if (!name || !buying_price || !selling_price || !quantity || !category_id || !sku) {
+        return res.status(400).json({ error: 'Name, SKU, buying price, selling price, quantity, and category_id are required' });
     }
 
-    const query = `
-        INSERT INTO products (barcode, name, description, price, quantity, category_id, sku, image, image_type)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    
-    db.query(query, [barcode, name, description, price, quantity, category_id, sku, image, image_type], (err, results) => {
+    const query = 'INSERT INTO products (name, description, buying_price, selling_price, quantity, category_id, sku, image, image_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    db.query(query, [name, description, buying_price, selling_price, quantity, category_id, sku, image, image_type], async (err, results) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Database error' });
@@ -48,14 +46,73 @@ router.post('/products', upload.single('image'), async (req, res) => {
             FROM branches b
             WHERE b.name = 'Main Branch';
         `;
-        
-        db.query(mainBranchQuery, [productId, quantity, category_id], (err) => {
+
+        db.query(mainBranchQuery, [productId, quantity, category_id], async (err) => {
             if (err) {
                 console.error('Error inserting product into Main Branch:', err);
                 return res.status(500).json({ error: 'Error inserting product into Main Branch' });
             }
-            
-            res.status(201).json({ message: 'Product created and added to Main Branch', id: productId });
+
+            // Prepare KRA eTIMS API request
+            const etimsApiUrl = 'https://etims-api-sbx.kra.go.ke/etims-api/saveItem';
+            const etimsHeaders = {
+                'Content-Type': 'application/json',
+                'tin': 'P000000040A', 
+                'bhfId': '00',
+                'cmcKey': '6ACBED179F9F46C4B9BDABC1429B5AAA54144A915BB24063AAE3' 
+            };
+
+            // Prepare payload for eTIMS API
+            const itemPayload = {
+                "itemCd": sku,
+                "itemClsCd": category_id,
+                "itemTyCd": "1",
+                "itemNm": name,
+                "itemStdNm": null,
+                "orgnNatCd": "KE",
+                "pkgUnitCd": "NT",
+                "qtyUnitCd": "U",
+                "taxTyCd": "B",
+                "btchNo": null,
+                "bcd": null,
+                "dftPrc": selling_price, // Use selling price for default price
+                "grpPrcL1": selling_price,
+                "grpPrcL2": selling_price,
+                "grpPrcL3": selling_price,
+                "grpPrcL4": selling_price,
+                "grpPrcL5": null,
+                "addInfo": name,
+                "sftyQty": null,
+                "isrcAplcbYn": "N",
+                "useYn": "Y",
+                "regrNm": "Admin",
+                "regrId": "Admin",
+                "modrNm": "Admin",
+                "modrId": "Admin"
+            };
+
+            console.log("Sending data to KRA eTIMS API:");
+            console.log("Headers:", etimsHeaders);
+            console.log("Payload:", JSON.stringify(itemPayload, null, 2));
+
+            try {
+                const etimsResponse = await axios.post(etimsApiUrl, itemPayload, { headers: etimsHeaders });
+
+                if (etimsResponse.status === 200) {
+                    console.log("KRA eTIMS API Response:", etimsResponse.data);
+                    return res.status(201).json({
+                        message: 'Product created, added to Main Branch, and synced with eTIMS successfully',
+                        id: productId,
+                        kraResponse: etimsResponse.data
+                    });
+                } else {
+                    console.error('Error saving item to eTIMS:', etimsResponse.data);
+                    return res.status(500).json({ error: 'Error saving item to eTIMS', details: etimsResponse.data });
+                }
+            } catch (error) {
+                console.error('eTIMS API error:', error);
+                return res.status(500).json({ error: 'eTIMS API integration failed', details: error.message });
+            }
         });
     });
 });
@@ -86,12 +143,12 @@ router.get('/products/:id/image', (req, res) => {
 });
 
 
-
+//update
 
 // Update Product
 router.put('/products/:id', upload.single('image'), async (req, res) => {
     const { id } = req.params;
-    const { barcode, name, description, price, quantity, category_id, sku } = req.body;
+    const { name, description, buying_price, selling_price, quantity, category_id, sku } = req.body;
     let image = null;
 
     if (req.file) {
@@ -103,17 +160,17 @@ router.put('/products/:id', upload.single('image'), async (req, res) => {
         }
     }
 
-    if (!barcode || !name || !price || !quantity || !category_id || !sku) {
-        return res.status(400).json({ error: 'Barcode, name, SKU, price, quantity, and category_id are required' });
+    if (!name || !buying_price || !selling_price || !quantity || !category_id || !sku) {
+        return res.status(400).json({ error: 'Name, SKU, buying price, selling price, quantity, and category_id are required' });
     }
 
     const query = `
-        UPDATE products
-        SET barcode = ?, name = ?, description = ?, price = ?, quantity = ?, category_id = ?, sku = ?, image = ?
-        WHERE id = ?
-    `;
+        UPDATE products 
+        SET name = ?, description = ?, buying_price = ?, selling_price = ?, 
+            quantity = ?, category_id = ?, sku = ?, image = ? 
+        WHERE id = ?`;
     
-    db.query(query, [barcode, name, description, price, quantity, category_id, sku, image, id], (err, results) => {
+    db.query(query, [name, description, buying_price, selling_price, quantity, category_id, sku, image, id], (err, results) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Database error' });
@@ -130,13 +187,13 @@ router.put('/products/:id', upload.single('image'), async (req, res) => {
             SET branch_products.quantity = ?, branch_products.category_id = ?
             WHERE branch_products.product_id = ? AND b.name = 'Main Branch';
         `;
-        
+
         db.query(updateBranchQuery, [quantity, category_id, id], (err) => {
             if (err) {
                 console.error('Error updating product in Main Branch:', err);
                 return res.status(500).json({ error: 'Error updating product in Main Branch' });
             }
-            res.status(200).json({ message: 'Product updated in Main Branch' });
+            res.status(200).json({ message: 'Product updated successfully in Main Branch' });
         });
     });
 });
@@ -208,30 +265,8 @@ router.get('/products', (req, res) => {
         res.status(200).json(results);
     });
 });
-// router.get('/products', (req, res) => {
-//     const { category_id, branch_id } = req.query;
-  
-//     if (!category_id || !branch_id) {
-//       return res.status(400).json({ error: 'Category ID and Branch ID are required' });
-//     }
-  
-//     const query = `
-//       SELECT p.id, p.name, p.description, p.price, p.category_id, bp.quantity
-//       FROM products p
-//       INNER JOIN branch_products bp ON p.id = bp.product_id
-//       WHERE p.category_id = ? AND bp.branch_id = ?
-//     `;
-  
-//     db.query(query, [category_id, branch_id], (err, results) => {
-//       if (err) {
-//         console.error('Database error:', err);
-//         return res.status(500).json({ error: 'Database error' });
-//       }
-  
-//       res.status(200).json(results);
-//     });
-//   });
-  
+
+
 // Get Products by Category
 router.get('/categories/:category_id/products', (req, res) => {
     const { category_id } = req.params;
@@ -246,66 +281,65 @@ router.get('/categories/:category_id/products', (req, res) => {
     });
 });
 
-router.post('/products', upload.single('image'), async (req, res) => {
-    const {barcode, name, description, price, quantity, category_id, sku } = req.body;
+// router.post('/products', upload.single('image'), async (req, res) => {
+//     const { name, description, price, quantity, category_id, sku } = req.body;
     
-    // Check if SKU already exists
-    const skuCheckQuery = 'SELECT COUNT(*) AS count FROM products WHERE sku = ?';
-    db.query(skuCheckQuery, [sku], (err, results) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database error' });
-        }
-        if (results[0].count > 0) {
-            return res.status(400).json({ error: 'SKU already exists' });
-        }
+//     // Check if SKU already exists
+//     const skuCheckQuery = 'SELECT COUNT(*) AS count FROM products WHERE sku = ?';
+//     db.query(skuCheckQuery, [sku], (err, results) => {
+//         if (err) {
+//             console.error('Database error:', err);
+//             return res.status(500).json({ error: 'Database error' });
+//         }
+//         if (results[0].count > 0) {
+//             return res.status(400).json({ error: 'SKU already exists' });
+//         }
 
-        // Proceed with product creation
-        let image = null;
-        let image_type = 'image/jpeg'; // Store the image type as JPEG
+//         // Proceed with product creation
+//         let image = null;
+//         let image_type = 'image/jpeg'; // Store the image type as JPEG
 
-        if (req.file) {
-            try {
-                image =  sharp(req.file.buffer).jpeg().toBuffer(); // Convert to JPEG format
-            } catch (error) {
-                console.error('Error processing image:', error);
-                return res.status(500).json({ error: 'Error processing image' });
-            }
-        }
+//         if (req.file) {
+//             try {
+//                 image =  sharp(req.file.buffer).jpeg().toBuffer(); // Convert to JPEG format
+//             } catch (error) {
+//                 console.error('Error processing image:', error);
+//                 return res.status(500).json({ error: 'Error processing image' });
+//             }
+//         }
 
-        const query = 'INSERT INTO products (barcode ,name, description, price, quantity, category_id, sku, image, image_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)';
-        db.query(query, [name, description, price, quantity, category_id, sku, image, image_type], (err, results) => {
-            if (err) {
-                console.error('Database error:', err);
-                return res.status(500).json({ error: 'Database error' });
-            }
-            res.status(201).json({ message: 'Product created', id: results.insertId });
-        });
-    });
-});
+//         const query = 'INSERT INTO products (name, description, price, quantity, category_id, sku, image, image_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+//         db.query(query, [name, description, price, quantity, category_id, sku, image, image_type], (err, results) => {
+//             if (err) {
+//                 console.error('Database error:', err);
+//                 return res.status(500).json({ error: 'Database error' });
+//             }
+//             res.status(201).json({ message: 'Product created', id: results.insertId });
+//         });
+//     });
+// });
 
 
-// Get Product Details by Name or Barcode (Case-Insensitive)
+// Get Product Details by Name (Case-Insensitive)
 router.get('/api/products/details', async (req, res) => {
-    const { productName, barcode } = req.query;
+    const { productName } = req.query;
 
-    if (!productName && !barcode) {
-        return res.status(400).json({ error: 'Either product name or barcode is required' });
+    if (!productName) {
+        return res.status(400).json({ error: 'Product name is required' });
     }
 
     try {
         // Query to find the product and its quantity in the Main Branch, case-insensitively
         const findProductQuery = `
-            SELECT p.id AS productId, p.name, p.price, bp.quantity AS quantityInMainBranch
+            SELECT p.id AS productId, p.name, p.selling_price, bp.quantity AS quantityInMainBranch
             FROM products p
             JOIN branch_products bp ON p.id = bp.product_id
             JOIN branches b ON bp.branch_id = b.id
-            WHERE (LOWER(p.name) = LOWER(?) OR p.barcode = ?)
-              AND b.name = 'Main Branch'
+            WHERE LOWER(p.name) = LOWER(?) AND b.name = 'Main Branch'
             LIMIT 1;
         `;
 
-        const [productDetails] = await db.promise().query(findProductQuery, [productName, barcode]);
+        const [productDetails] = await db.promise().query(findProductQuery, [productName]);
 
         if (productDetails.length === 0) {
             return res.status(404).json({ error: 'Product not found in Main Branch' });
@@ -319,53 +353,34 @@ router.get('/api/products/details', async (req, res) => {
     }
 });
 
-// Get Products by Category, Name, or Barcode (Case-Insensitive)
+// Get Products by Category and Name (Case-Insensitive)
 router.get('/prodcat', (req, res) => {
-    const { productName, categoryId, barcode } = req.query;
+    const { productName, categoryId } = req.query;
 
     console.log('Received productName:', productName);
     console.log('Received categoryId:', categoryId);
-    console.log('Received barcode:', barcode);
 
     if (!categoryId) {
         return res.status(400).json({ error: 'Category ID is required' });
     }
 
-    // Build query conditionally based on provided parameters
-    const conditions = [];
-    const queryParams = [];
-
-    if (productName) {
-        conditions.push('LOWER(p.name) LIKE LOWER(?)');
-        queryParams.push(`%${productName}%`);
-    }
-
-    if (barcode) {
-        conditions.push('p.barcode = ?');
-        queryParams.push(barcode);
-    }
-
-    conditions.push('p.category_id = ?');
-    queryParams.push(categoryId);
-    conditions.push('b.name = \'Main Branch\'');
-
     const findProductsQuery = `
-        SELECT p.id AS productId, p.name, p.price, bp.quantity AS quantityInMainBranch
+        SELECT p.id AS productId, p.name, p.selling_price, bp.quantity AS quantityInMainBranch
         FROM products p
         JOIN branch_products bp ON p.id = bp.product_id
         JOIN branches b ON bp.branch_id = b.id
-        WHERE ${conditions.join(' AND ')}
+        WHERE LOWER(p.name) LIKE LOWER(?) AND p.category_id = ? AND b.name = 'Main Branch'
         LIMIT 10;
     `;
 
-    db.query(findProductsQuery, queryParams, (err, products) => {
+    db.query(findProductsQuery, [`%${productName}%`, categoryId], (err, products) => {
         if (err) {
             console.error('Database error details:', err.message);  // Log the specific error details
             return res.status(500).json({ error: 'Database error' });
         }
 
         if (products.length === 0) {
-            return res.status(404).json({ error: 'No products found in Main Branch for the given criteria' });
+            return res.status(404).json({ error: 'No products found in Main Branch for the given category' });
         }
 
         res.status(200).json(products);
@@ -436,7 +451,7 @@ router.get('/branches/:branch_id/products', (req, res) => {
     const { branch_id } = req.params;
 
     const query = `
-        SELECT p.id, p.name, p.description, p.price, bp.quantity
+        SELECT p.id, p.name, p.description, p.selling_price, bp.quantity
         FROM branch_products bp
         INNER JOIN products p ON bp.product_id = p.id
         WHERE bp.branch_id = ?

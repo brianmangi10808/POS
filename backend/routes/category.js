@@ -3,16 +3,17 @@ const router = express.Router();
 const db = require('../db');
 
 
+
 // Create a New Category
 router.post('/categories', (req, res) => {
-    const { name } = req.body;
+    const { name, tax_rate } = req.body;
 
-    if (!name) {
-        return res.status(400).json({ error: 'Category name is required' });
+    if (!name || tax_rate === undefined) {
+        return res.status(400).json({ error: 'Category name and tax rate are required' });
     }
 
-    const query = 'INSERT INTO categories (name) VALUES (?)';
-    db.query(query, [name], (err, results) => {
+    const query = 'INSERT INTO categories (name, tax_rate) VALUES (?, ?)';
+    db.query(query, [name, tax_rate], (err, results) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Database error' });
@@ -22,16 +23,17 @@ router.post('/categories', (req, res) => {
 });
 
 // Update an Existing Category
+
 router.put('/categories/:id', (req, res) => {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, tax_rate } = req.body;
 
-    if (!name) {
-        return res.status(400).json({ error: 'Category name is required' });
+    if (!name || tax_rate === undefined) {
+        return res.status(400).json({ error: 'Category name and tax rate are required' });
     }
 
-    const query = 'UPDATE categories SET name = ? WHERE id = ?';
-    db.query(query, [name, id], (err, results) => {
+    const query = 'UPDATE categories SET name = ?, tax_rate = ? WHERE id = ?';
+    db.query(query, [name, tax_rate, id], (err, results) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Database error' });
@@ -42,6 +44,7 @@ router.put('/categories/:id', (req, res) => {
         res.status(200).json({ message: 'Category updated' });
     });
 });
+
 
 // Delete a Category
 router.delete('/categories/:id', (req, res) => {
